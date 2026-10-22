@@ -1,0 +1,9 @@
+{
+  "name": "CuteFit",
+  "short_name": "CuteFit",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8f1fb",
+  "theme_color": "#140a22",
+  "icons": [{ "src": "/icon.jpg", "sizes": "120x120", "type": "image/jpeg" }]
+}
