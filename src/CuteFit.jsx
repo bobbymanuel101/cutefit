@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { ScanBarcode, Camera, Plus, Minus, Trash2, Dumbbell, Utensils, Sparkles, Check, Loader2, X, User, RotateCcw, Droplets, Cog, Timer, Play, Square, ExternalLink, ChevronRight, Activity as ActivityIcon } from "lucide-react";
+import { ScanBarcode, PencilLine, Camera, Plus, Minus, Trash2, Dumbbell, Utensils, Sparkles, Check, Loader2, X, User, RotateCcw, Droplets, Cog, Timer, Play, Square, ExternalLink, ChevronRight, Activity as ActivityIcon } from "lucide-react";
 import { BarcodeScanner, PortionPicker, LookupSpinner, lookupBarcode, findBarcodeInImage } from "./Barcode.jsx";
 
 /* ---------- theme ---------- */
@@ -993,6 +993,13 @@ export default function CuteFit() {
   const [scanning, setScanning] = useState(false);
   const [showMeals, setShowMeals] = useState(false);
   const [showIdeas, setShowIdeas] = useState(false);
+  const [focusDescribe, setFocusDescribe] = useState(false);
+  const quickPhotoRef = useRef(null);
+  const openLog = (describe = false) => {
+    setLogType(inferType());
+    setFocusDescribe(describe);
+    setShowLog(true);
+  };
   const [product, setProduct] = useState(null);
   const [lookingUp, setLookingUp] = useState(false);
 
@@ -1669,7 +1676,10 @@ export default function CuteFit() {
   return (
     <div className="min-h-dvh w-full cutefit" style={{ ...themeVars, colorScheme: dark ? "dark" : "light", background: BG, color: INK, fontFamily: FONT }}>
       <style>{`.cutefit input::placeholder, .cutefit textarea::placeholder { color: var(--icon); opacity: 1; }`}</style>
-      <div className="max-w-md mx-auto px-4" style={{ paddingBottom: "calc(110px + env(safe-area-inset-bottom))" }}>
+      <div
+        className="max-w-md mx-auto px-4 flex flex-col"
+        style={{ minHeight: "100dvh", paddingBottom: `calc(${tab === "food" ? 84 : 110}px + env(safe-area-inset-bottom))` }}
+      >
         <header
           className="mb-3 -mx-4 px-4 pb-2"
           style={{ position: "sticky", top: 0, zIndex: 40, background: BG, paddingTop: "calc(env(safe-area-inset-top) + 12px)" }}
@@ -1695,7 +1705,7 @@ export default function CuteFit() {
 
         {/* ===== FOOD ===== */}
         {tab === "food" && (
-          <div className="flex flex-col gap-3">
+          <div className="flex-1 flex flex-col gap-3">
             {!store.setupDone && (
               <button onClick={() => setTab("me")} className="text-left p-4 flex items-center gap-3" style={{ ...card, background: MINT, border: "none" }}>
                 <Sparkles size={22} style={{ color: PINE }} />
@@ -1820,16 +1830,42 @@ export default function CuteFit() {
               </button>
             </div>
 
-            <button
-              onClick={() => {
-                setLogType(inferType());
-                setShowLog(true);
-              }}
-              className="flex items-center justify-center gap-2 py-4 font-bold text-white text-lg"
-              style={{ borderRadius: 20, background: BTNG, boxShadow: "0 8px 20px rgba(60,15,84,0.30)" }}
+            {/* Log food panel: fills the rest of the screen with three quick ways in */}
+            <section
+              className="flex-1 flex flex-col gap-3 p-4 text-white relative overflow-hidden"
+              style={{ minHeight: 168, borderRadius: 26, background: BTNG, boxShadow: "0 10px 26px rgba(60,15,84,0.32)" }}
             >
-              <Plus size={22} strokeWidth={3} /> Log food
-            </button>
+              <div aria-hidden="true" style={{ position: "absolute", width: 180, height: 180, right: -50, top: -70, borderRadius: "50%", background: "rgba(255,255,255,0.10)" }} />
+              <div aria-hidden="true" style={{ position: "absolute", width: 110, height: 110, left: -30, bottom: -40, borderRadius: "50%", background: "rgba(255,111,208,0.18)" }} />
+              <button onClick={() => openLog()} className="relative flex items-center gap-3 text-left">
+                <span className="flex items-center justify-center shrink-0" style={{ width: 44, height: 44, borderRadius: 14, background: "rgba(255,255,255,0.18)" }}>
+                  <Plus size={26} strokeWidth={3} />
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-xl font-bold leading-tight">Log food</span>
+                  <span className="block text-sm" style={{ opacity: 0.85 }}>{inferType()} time. What are you having?</span>
+                </span>
+              </button>
+              <input ref={quickPhotoRef} type="file" accept="image/*" className="hidden" onChange={(e) => { openLog(); onPickImage(e); }} />
+              <div className="relative flex-1 grid grid-cols-3 gap-2">
+                {[
+                  { icon: ScanBarcode, label: "Scan", sub: "barcode", go: () => { openLog(); setScanning(true); } },
+                  { icon: Camera, label: "Photo", sub: "of your plate", go: () => quickPhotoRef.current?.click() },
+                  { icon: PencilLine, label: "Describe", sub: "in words", go: () => openLog(true) },
+                ].map(({ icon: I, label, sub, go }) => (
+                  <button
+                    key={label}
+                    onClick={go}
+                    className="flex flex-col items-center justify-center gap-1 py-3 font-bold"
+                    style={{ borderRadius: 18, background: "rgba(255,255,255,0.14)", border: "1px solid rgba(255,255,255,0.22)", minHeight: 84 }}
+                  >
+                    <I size={26} />
+                    <span className="text-sm leading-tight">{label}</span>
+                    <span className="text-xs font-medium leading-tight" style={{ opacity: 0.8 }}>{sub}</span>
+                  </button>
+                ))}
+              </div>
+            </section>
           </div>
         )}
 
@@ -3181,6 +3217,7 @@ export default function CuteFit() {
                   onChange={(e) => setText(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && estimate()}
                   placeholder="Describe it: 2 eggs, toast, flat white"
+                  autoFocus={focusDescribe}
                   className="px-4 py-4 outline-none"
                   style={inputStyle}
                   aria-label="Describe your meal"
