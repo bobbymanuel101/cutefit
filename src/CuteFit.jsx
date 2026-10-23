@@ -2586,7 +2586,7 @@ export default function CuteFit() {
                     </p>
                   )}
                   <p className="text-sm" style={{ color: MUTED }}>
-                    Your daily water, calories and protein update automatically when you change your goal or details. You can fine-tune them in your profile.
+                    Your daily water, calories and protein update automatically when you change your goal or details. You can still fine-tune them below.
                   </p>
                   {calc.provisional && (
                     <p className="text-sm font-semibold" style={{ color: PINE }}>
@@ -2605,6 +2605,32 @@ export default function CuteFit() {
                   </p>
                 </>
               )}
+            </section>
+
+            <section className="p-5" style={card}>
+              <h2 className="font-bold text-lg mb-1">Daily targets</h2>
+              <p className="text-sm" style={{ color: MUTED }}>These update when you change your goal or details. Fine-tune them here.</p>
+              <Stepper label="Daily water" unit="ml" step={250} min={500} max={8000} value={profile.waterTarget} onChange={(v) => setProfile({ waterTarget: v })} color={WATER} />
+              <div style={{ borderTop: `1px solid ${LINE}` }} />
+              <Stepper label="Daily calories" unit="kcal" step={50} min={800} max={6000} value={profile.calTarget} onChange={(v) => setProfile({ calTarget: v })} color={CAL} />
+              <div style={{ borderTop: `1px solid ${LINE}` }} />
+              <Stepper label="Daily protein" unit="grams" step={5} min={20} max={400} value={profile.proTarget} onChange={(v) => setProfile({ proTarget: v })} color={PROTEIN} />
+              <div style={{ borderTop: `1px solid ${LINE}` }} />
+              <Stepper label="Daily steps" unit="steps" step={500} min={1000} max={40000} value={profile.stepTarget} onChange={(v) => setProfile({ stepTarget: v })} color={STEPS} />
+              <div style={{ borderTop: `1px solid ${LINE}` }} />
+              <Stepper label="Active minutes" unit="minutes a day" step={5} min={5} max={300} value={profile.activeTarget} onChange={(v) => setProfile({ activeTarget: v })} color={ACTIVE} />
+              <div style={{ borderTop: `1px solid ${LINE}` }} />
+              <Stepper label="Training days" unit="strength sessions a week" step={1} min={2} max={5} value={profile.trainDays} onChange={(v) => setProfile({ trainDays: v })} color={PINE} />
+              <button
+                onClick={() => setProfile({ proTarget: Math.round(profile.weight * GOALS[profile.goal].perKg) })}
+                className="w-full mt-3 py-3 font-bold"
+                style={{ borderRadius: 16, background: MINT, color: PINE }}
+              >
+                Set protein from my weight and goal
+              </button>
+              <p className="text-xs mt-3" style={{ color: MUTED }}>
+                These are general estimates, not medical advice. A dietitian or doctor can set numbers that fit you.
+              </p>
             </section>
 
 
@@ -3243,31 +3269,6 @@ export default function CuteFit() {
                   );
                 })}
               </div>
-            </section>
-            <section className="p-5" style={card}>
-              <h2 className="font-bold text-lg mb-1">Daily targets</h2>
-              <p className="text-sm" style={{ color: MUTED }}>These update when you change your details. Fine-tune them here.</p>
-              <Stepper label="Daily water" unit="ml" step={250} min={500} max={8000} value={profile.waterTarget} onChange={(v) => setProfile({ waterTarget: v })} color={WATER} />
-              <div style={{ borderTop: `1px solid ${LINE}` }} />
-              <Stepper label="Daily calories" unit="kcal" step={50} min={800} max={6000} value={profile.calTarget} onChange={(v) => setProfile({ calTarget: v })} color={CAL} />
-              <div style={{ borderTop: `1px solid ${LINE}` }} />
-              <Stepper label="Daily protein" unit="grams" step={5} min={20} max={400} value={profile.proTarget} onChange={(v) => setProfile({ proTarget: v })} color={PROTEIN} />
-              <div style={{ borderTop: `1px solid ${LINE}` }} />
-              <Stepper label="Daily steps" unit="steps" step={500} min={1000} max={40000} value={profile.stepTarget} onChange={(v) => setProfile({ stepTarget: v })} color={STEPS} />
-              <div style={{ borderTop: `1px solid ${LINE}` }} />
-              <Stepper label="Active minutes" unit="minutes a day" step={5} min={5} max={300} value={profile.activeTarget} onChange={(v) => setProfile({ activeTarget: v })} color={ACTIVE} />
-              <div style={{ borderTop: `1px solid ${LINE}` }} />
-              <Stepper label="Training days" unit="strength sessions a week" step={1} min={2} max={5} value={profile.trainDays} onChange={(v) => setProfile({ trainDays: v })} color={PINE} />
-              <button
-                onClick={() => setProfile({ proTarget: Math.round(profile.weight * GOALS[profile.goal].perKg) })}
-                className="w-full mt-3 py-3 font-bold"
-                style={{ borderRadius: 16, background: MINT, color: PINE }}
-              >
-                Set protein from my weight and goal
-              </button>
-              <p className="text-xs mt-3" style={{ color: MUTED }}>
-                These are general estimates, not medical advice. A dietitian or doctor can set numbers that fit you.
-              </p>
             </section>
             <section className="p-5 flex flex-col gap-3" style={card}>
               <h2 className="font-bold text-lg">Appearance</h2>
