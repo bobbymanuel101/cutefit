@@ -1047,6 +1047,13 @@ export default function CuteFit() {
   const planRef = useRef(null);
   const scrollRef = useRef(null);
   const [showProfile, setShowProfile] = useState(false);
+  // Short screens (small phones, Safari with toolbars) get a tighter home layout
+  const [short, setShort] = useState(() => window.innerHeight < 720);
+  useEffect(() => {
+    const onResize = () => setShort(window.innerHeight < 720);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
   const [avatar, setAvatar] = useState(null);
   const avatarRef = useRef(null);
   useEffect(() => {
@@ -1741,17 +1748,17 @@ export default function CuteFit() {
       >
       <div
         className="w-full max-w-md mx-auto px-4 flex flex-col"
-        style={{ flex: "1 0 auto", paddingBottom: tab === "food" ? 14 : 28 }}
+        style={{ flex: "1 0 auto", paddingBottom: tab === "food" ? 12 : 28 }}
       >
         <header
-          className="mb-3 -mx-4 px-4 pb-2"
-          style={{ position: "sticky", top: 0, zIndex: 40, background: BG, paddingTop: "calc(env(safe-area-inset-top) + 12px)" }}
+          className={`${short ? "mb-1" : "mb-3"} -mx-4 px-4 pb-2`}
+          style={{ position: "sticky", top: 0, zIndex: 40, background: BG, paddingTop: `calc(env(safe-area-inset-top) + ${short ? 8 : 12}px)` }}
         >
           <div
           className="flex items-center gap-3 p-1.5 mb-2"
           style={{ background: "var(--hdr-bg)", borderRadius: 22, border: "1px solid var(--hdr-border)", boxShadow: "var(--hdr-glow)" }}
         >
-          <img src={LOGO_SRC} alt="" width={38} height={38} style={{ borderRadius: 12, display: "block" }} />
+          <img src={LOGO_SRC} alt="" width={short ? 32 : 38} height={short ? 32 : 38} style={{ borderRadius: 12, display: "block" }} />
           <span className="text-xl font-bold" style={{ color: "#FFFFFF", letterSpacing: "-0.02em" }}>
             Cute<span style={{ color: "#FF6FD0" }}>Fit</span>
           </span>
@@ -1759,7 +1766,7 @@ export default function CuteFit() {
             onClick={() => setShowProfile(true)}
             aria-label="Profile and settings"
             className="ml-auto mr-1 flex items-center justify-center overflow-hidden"
-            style={{ width: 38, height: 38, borderRadius: 19, background: "linear-gradient(135deg, #FF6FD0, #9b3df0)", border: "2px solid rgba(255,255,255,0.85)", color: "#fff" }}
+            style={{ width: short ? 32 : 38, height: short ? 32 : 38, borderRadius: 19, background: "linear-gradient(135deg, #FF6FD0, #9b3df0)", border: "2px solid rgba(255,255,255,0.85)", color: "#fff" }}
           >
             {avatar ? (
               <img src={avatar} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
@@ -1771,7 +1778,7 @@ export default function CuteFit() {
           </button>
         </div>
           <div className="flex items-baseline justify-between gap-3">
-            <h1 className="text-2xl font-bold" style={{ color: PINE }}>
+            <h1 className={`${short ? "text-xl" : "text-2xl"} font-bold`} style={{ color: PINE }}>
               {{ food: "Today", lift: "Workout", mach: "Gym machines", act: "Activity", me: "My goals" }[tab]}
             </h1>
             <p className="text-sm truncate" style={{ color: MUTED }}>{dateLabel}</p>
@@ -1780,7 +1787,7 @@ export default function CuteFit() {
 
         {/* ===== FOOD ===== */}
         {tab === "food" && (
-          <div className="flex-1 flex flex-col gap-3">
+          <div className={`flex-1 flex flex-col ${short ? "gap-2" : "gap-3"}`} style={{ minHeight: 0 }}>
             {!store.setupDone && (
               <button onClick={() => setShowProfile(true)} className="text-left p-4 flex items-center gap-3" style={{ ...card, background: MINT, border: "none" }}>
                 <Sparkles size={22} style={{ color: PINE }} />
@@ -1801,9 +1808,9 @@ export default function CuteFit() {
               </button>
             )}
 
-            <section className="p-4 flex items-center gap-4" style={card}>
-              <div className="relative shrink-0" style={{ width: 128, height: 128 }}>
-                <Ring value={totals.pro} target={profile.proTarget} color={PROTEIN} size={128} />
+            <section className={`px-4 ${short ? "py-2" : "py-3"} flex items-center gap-4 shrink-0`} style={card}>
+              <div className="relative shrink-0" style={{ width: short ? 92 : 112, height: short ? 92 : 112 }}>
+                <Ring value={totals.pro} target={profile.proTarget} color={PROTEIN} size={short ? 92 : 112} />
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
                   {proHit ? (
                     <>
@@ -1846,83 +1853,83 @@ export default function CuteFit() {
               </div>
             </section>
 
-            {/* Water */}
-            <section className="p-4" style={card}>
-              <div className="flex items-baseline justify-between mb-2">
-                <h2 className="font-bold text-lg flex items-center gap-2">
-                  <Droplets size={20} style={{ color: WATER }} /> Water
-                </h2>
-                <span style={{ color: MUTED }}>
-                  <span className="font-bold text-lg" style={{ color: WATER }}>{(waterMl / 1000).toFixed(2)}</span> / {(profile.waterTarget / 1000).toFixed(1)} L
-                </span>
+            {/* Water: one slim row */}
+            <section className={`px-4 ${short ? "py-2" : "py-3"} shrink-0`} style={card}>
+              <div className="flex items-center gap-2">
+                <Droplets size={20} style={{ color: WATER }} className="shrink-0" />
+                <div className="min-w-0 flex-1 leading-tight">
+                  <div className="font-bold">Water</div>
+                  <div className="text-sm" style={{ color: MUTED }}>
+                    <span className="font-bold" style={{ color: WATER }}>{(waterMl / 1000).toFixed(2)}</span> / {(profile.waterTarget / 1000).toFixed(1)} L
+                  </div>
+                </div>
+                <button onClick={() => addWater(250)} className="px-3 py-2 text-sm font-bold" style={{ borderRadius: 12, background: TINT_W, color: WATERTXT }}>
+                  +250
+                </button>
+                <button onClick={() => addWater(500)} className="px-3 py-2 text-sm font-bold" style={{ borderRadius: 12, background: TINT_W, color: WATERTXT }}>
+                  +500
+                </button>
+                <button onClick={() => addWater(-250)} aria-label="Undo 250 ml" className="px-2.5 py-2 font-bold" style={{ borderRadius: 12, background: PANEL, color: MUTED }}>
+                  <Minus size={16} />
+                </button>
               </div>
-              <div className="overflow-hidden mb-3" style={{ height: 10, borderRadius: 5, background: TROUGH }}>
+              <div className="overflow-hidden mt-2.5" style={{ height: 6, borderRadius: 3, background: TROUGH }}>
                 <div
                   style={{
                     width: `${Math.min(100, profile.waterTarget ? (waterMl / profile.waterTarget) * 100 : 0)}%`,
                     height: "100%",
                     background: WATER,
-                    borderRadius: 6,
+                    borderRadius: 3,
                     transition: "width 400ms ease",
                   }}
                 />
               </div>
-              <div className="flex gap-2">
-                <button onClick={() => addWater(250)} className="flex-1 py-2.5 font-bold" style={{ borderRadius: 14, background: TINT_W, color: WATERTXT }}>
-                  + 250 ml
-                </button>
-                <button onClick={() => addWater(500)} className="flex-1 py-2.5 font-bold" style={{ borderRadius: 14, background: TINT_W, color: WATERTXT }}>
-                  + 500 ml
-                </button>
-                <button onClick={() => addWater(-250)} aria-label="Undo 250 ml" className="px-4 py-2.5 font-bold" style={{ borderRadius: 14, background: PANEL, color: MUTED }}>
-                  <Minus size={18} />
-                </button>
-              </div>
-              {waterMl >= profile.waterTarget && (
-                <p className="text-sm mt-2" style={{ color: MUTED }}>Water target reached.</p>
-              )}
             </section>
 
             {/* Shortcuts: meal list and AI ideas open in sheets so the page stays one screen */}
-            <div className="grid grid-cols-2 gap-3">
-              <button onClick={() => setShowMeals(true)} className="p-4 text-left flex flex-col gap-1" style={card}>
-                <span className="flex items-center justify-between w-full">
-                  <Utensils size={20} style={{ color: PINE }} />
-                  <ChevronRight size={18} style={{ color: ICON }} />
+            <div className={`grid grid-cols-2 ${short ? "gap-2" : "gap-3"} shrink-0`}>
+              <button onClick={() => setShowMeals(true)} className={`${short ? "p-2.5" : "p-3"} text-left flex items-center gap-2.5`} style={card}>
+                <span className="flex items-center justify-center shrink-0" style={{ width: 36, height: 36, borderRadius: 12, background: PANEL }}>
+                  <Utensils size={18} style={{ color: PINE }} />
                 </span>
-                <span className="font-bold mt-1">Meals today</span>
-                <span className="text-sm" style={{ color: MUTED }}>
-                  {meals.length === 0 ? "None yet" : `${meals.length} logged · ${totals.cal} kcal`}
+                <span className="min-w-0 flex-1 leading-tight">
+                  <span className="block font-bold text-sm">Meals today</span>
+                  <span className="block text-xs truncate" style={{ color: MUTED }}>
+                    {meals.length === 0 ? "None yet" : `${meals.length} · ${totals.cal} kcal`}
+                  </span>
                 </span>
+                <ChevronRight size={16} style={{ color: ICON }} className="shrink-0" />
               </button>
-              <button onClick={() => setShowIdeas(true)} className="p-4 text-left flex flex-col gap-1" style={{ ...card, background: MINT, border: "none" }}>
-                <span className="flex items-center justify-between w-full">
-                  <Sparkles size={20} style={{ color: PINE }} />
-                  <ChevronRight size={18} style={{ color: PINE }} />
+              <button onClick={() => setShowIdeas(true)} className={`${short ? "p-2.5" : "p-3"} text-left flex items-center gap-2.5`} style={{ ...card, background: MINT, border: "none" }}>
+                <span className="flex items-center justify-center shrink-0" style={{ width: 36, height: 36, borderRadius: 12, background: "rgba(255,255,255,0.35)" }}>
+                  <Sparkles size={18} style={{ color: PINE }} />
                 </span>
-                <span className="font-bold mt-1" style={{ color: PINE }}>Meal ideas</span>
-                <span className="text-sm" style={{ color: MUTED }}>AI picks for what's left</span>
+                <span className="min-w-0 flex-1 leading-tight">
+                  <span className="block font-bold text-sm" style={{ color: PINE }}>Meal ideas</span>
+                  <span className="block text-xs truncate" style={{ color: MUTED }}>AI picks</span>
+                </span>
+                <ChevronRight size={16} style={{ color: PINE }} className="shrink-0" />
               </button>
             </div>
 
             {/* Log food panel: fills the rest of the screen with three quick ways in */}
             <section
-              className="flex-1 flex flex-col gap-3 p-4 text-white relative overflow-hidden"
-              style={{ minHeight: 168, borderRadius: 26, background: BTNG, boxShadow: "0 10px 26px rgba(60,15,84,0.32)" }}
+              className="cf-logpanel flex flex-col gap-3 p-4 text-white relative overflow-hidden"
+              style={{ flex: "1 1 0", minHeight: short ? 100 : 124, padding: short ? 12 : undefined, gap: short ? 8 : undefined, borderRadius: 26, background: BTNG, boxShadow: "0 10px 26px rgba(60,15,84,0.32)" }}
             >
               <div aria-hidden="true" style={{ position: "absolute", width: 180, height: 180, right: -50, top: -70, borderRadius: "50%", background: "rgba(255,255,255,0.10)" }} />
               <div aria-hidden="true" style={{ position: "absolute", width: 110, height: 110, left: -30, bottom: -40, borderRadius: "50%", background: "rgba(255,111,208,0.18)" }} />
               <button onClick={() => openLog()} className="relative flex items-center gap-3 text-left">
-                <span className="flex items-center justify-center shrink-0" style={{ width: 44, height: 44, borderRadius: 14, background: "rgba(255,255,255,0.18)" }}>
-                  <Plus size={26} strokeWidth={3} />
+                <span className="flex items-center justify-center shrink-0" style={{ width: 40, height: 40, borderRadius: 13, background: "rgba(255,255,255,0.18)" }}>
+                  <Plus size={24} strokeWidth={3} />
                 </span>
                 <span className="min-w-0">
-                  <span className="block text-xl font-bold leading-tight">Log food</span>
-                  <span className="block text-sm" style={{ opacity: 0.85 }}>{inferType()} time. What are you having?</span>
+                  <span className="block text-xl font-bold leading-tight">Log food{short ? <span className="text-sm font-semibold" style={{ opacity: 0.85 }}> · {inferType()}</span> : null}</span>
+                  {!short && <span className="block text-sm" style={{ opacity: 0.85 }}>{inferType()} time. What are you having?</span>}
                 </span>
               </button>
               <input ref={quickPhotoRef} type="file" accept="image/*" className="hidden" onChange={(e) => { openLog(); onPickImage(e); }} />
-              <div className="relative flex-1 grid grid-cols-3 gap-2">
+              <div className="relative flex-1 min-h-0 grid grid-cols-3 gap-2">
                 {[
                   { icon: ScanBarcode, label: "Scan", sub: "barcode", go: () => { openLog(); setScanning(true); } },
                   { icon: Camera, label: "Photo", sub: "of your plate", go: () => quickPhotoRef.current?.click() },
@@ -1931,12 +1938,12 @@ export default function CuteFit() {
                   <button
                     key={label}
                     onClick={go}
-                    className="flex flex-col items-center justify-center gap-1 py-3 font-bold"
-                    style={{ borderRadius: 18, background: "rgba(255,255,255,0.14)", border: "1px solid rgba(255,255,255,0.22)", minHeight: 84 }}
+                    className={`flex ${short ? "flex-row gap-1.5" : "flex-col gap-1"} items-center justify-center py-2 font-bold`}
+                    style={{ borderRadius: 18, background: "rgba(255,255,255,0.14)", border: "1px solid rgba(255,255,255,0.22)", minHeight: short ? 44 : 54 }}
                   >
-                    <I size={26} />
+                    <I size={short ? 22 : 26} className="shrink-0" />
                     <span className="text-sm leading-tight">{label}</span>
-                    <span className="text-xs font-medium leading-tight" style={{ opacity: 0.8 }}>{sub}</span>
+                    <span className="cf-sub text-xs font-medium leading-tight" style={{ opacity: 0.8 }}>{sub}</span>
                   </button>
                 ))}
               </div>
