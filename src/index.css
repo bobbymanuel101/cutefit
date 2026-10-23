@@ -1,3 +1,22 @@
 @import "tailwindcss";
 
-html, body { margin: 0; -webkit-tap-highlight-color: transparent; }
+/* Keep the app steady on phones: no sideways drift, no rubber-band bounce,
+   no automatic font scaling or zoom-on-focus. */
+html, body {
+  margin: 0;
+  width: 100%;
+  overflow-x: hidden;
+  overscroll-behavior: none;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+  background: #140a22;
+}
+#root { width: 100%; overflow-x: clip; }
+button, a { touch-action: manipulation; }
+
+/* iOS zooms the page when a field under 16px gets focus, which shifts the whole layout */
+input, textarea, select { font-size: 16px; }
+
+/* Locked while a sheet or overlay is open, so the page behind can't scroll */
+html.cf-lock, html.cf-lock body { overflow: hidden; }

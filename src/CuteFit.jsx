@@ -313,37 +313,55 @@ async function prepImage(file) {
   return { preview: dataUrl, data: dataUrl.split(",")[1] };
 }
 
+// One place that talks to /api/claude. Throws an Error whose message is a
+// plain reason the user can act on (missing key, no credit, timeout, offline).
+async function callClaude(system, content) {
+  let response;
+  try {
+    response = await fetch("/api/claude", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ system, messages: [{ role: "user", content }] }),
+    });
+  } catch {
+    throw new Error("You seem to be offline. Check your connection and try again.");
+  }
+  const raw = await response.text();
+  let data = null;
+  try {
+    data = JSON.parse(raw);
+  } catch {}
+  if (!response.ok || !data) {
+    const reason =
+      (data && (typeof data.error === "string" ? data.error : data.error?.message)) ||
+      (response.status === 404 ? "The AI service isn't deployed. Check the Netlify functions setup." : "") ||
+      (response.status === 502 || response.status === 504 ? "The AI took too long to answer. Try again." : "") ||
+      `The AI service returned an error (${response.status}).`;
+    throw new Error(reason);
+  }
+  const text = (data.content || []).map((b) => (b.type === "text" ? b.text : "")).join("").trim();
+  if (!text) throw new Error("The AI sent back an empty answer. Try again.");
+  return text;
+}
+
 async function askClaude(system, content) {
-  const response = await fetch("/api/claude", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: "claude-sonnet-4-6",
-      max_tokens: 1000,
-      system,
-      messages: [{ role: "user", content }],
-    }),
-  });
-  const data = await response.json();
-  const raw = (data.content || []).map((b) => (b.type === "text" ? b.text : "")).join("");
-  return JSON.parse(raw.replace(/```json|```/g, "").trim());
+  const text = await callClaude(system, content);
+  const cleaned = text.replace(/```json|```/g, "").trim();
+  try {
+    return JSON.parse(cleaned);
+  } catch {}
+  // Pull the first JSON object or array out of any surrounding words
+  const m = cleaned.match(/[\[{][\s\S]*[\]}]/);
+  if (m) {
+    try {
+      return JSON.parse(m[0]);
+    } catch {}
+  }
+  throw new Error("The AI's answer couldn't be read. Try again, or add a short description.");
 }
 
 async function askClaudeText(system, content) {
-  const response = await fetch("/api/claude", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: "claude-sonnet-4-6",
-      max_tokens: 1000,
-      system,
-      messages: [{ role: "user", content }],
-    }),
-  });
-  const data = await response.json();
-  const text = (data.content || []).map((b) => (b.type === "text" ? b.text : "")).join("").trim();
-  if (!text) throw new Error("empty answer");
-  return text;
+  return callClaude(system, content);
 }
 
 /* ---------- small UI pieces ---------- */
@@ -1043,6 +1061,12 @@ export default function CuteFit() {
   const sel = MACHINES.find((m) => m.id === selMachine);
 
   useEffect(() => {
+    const locked = showLog || !!selMachine || !!fc;
+    document.documentElement.classList.toggle("cf-lock", locked);
+    return () => document.documentElement.classList.remove("cf-lock");
+  }, [showLog, selMachine, fc]);
+
+  useEffect(() => {
     if (!timer || timer.done) return;
     const iv = setInterval(() => setNow(Date.now()), 250);
     return () => clearInterval(iv);
@@ -1236,6 +1260,14 @@ export default function CuteFit() {
   const look = store.look || "light";
   const dark = look === "dark" || look === "neon" || (look === "auto" && systemDark);
   const themeVars = look === "neon" ? THEMES.neon : dark ? THEMES.dark : THEMES.light;
+  // Match the page behind the app (status bar area, edges) to the current theme
+  useEffect(() => {
+    const bg = themeVars["--bg"];
+    if (bg) {
+      document.documentElement.style.background = bg;
+      document.body.style.background = bg;
+    }
+  }, [themeVars]);
 
   const lastWeight = (mid) => {
     const days = Object.keys(gymDays).sort().reverse();
@@ -1290,7 +1322,7 @@ export default function CuteFit() {
       );
       setCoachAnswer(text);
     } catch (err) {
-      setCoachError("Couldn't reach the coach. Check your connection and try again.");
+      setCoachError(`Couldn't reach the coach. ${err.message}`);
     }
     setCoachLoading(false);
   };
@@ -1412,7 +1444,7 @@ export default function CuteFit() {
         note: r.note || "",
       });
     } catch (err) {
-      setMealError("Couldn't estimate that. Check your connection or add more detail, then try again.");
+      setMealError(`Couldn't estimate that. ${err.message}`);
     }
     setEstimating(false);
   };
@@ -1446,7 +1478,7 @@ export default function CuteFit() {
       );
       setIdeasByCat((prev) => ({ ...prev, [cat]: r }));
     } catch (err) {
-      setIdeasError("Couldn't load ideas. Check your connection and try again.");
+      setIdeasError(`Couldn't load ideas. ${err.message}`);
     }
     setIdeasLoading(null);
   };
@@ -1467,7 +1499,7 @@ export default function CuteFit() {
       setPlan(r);
     } catch (err) {
       setPlan(FALLBACK[focus].map(([exercise, machine, sets_reps]) => ({ exercise, machine, sets_reps, tip: "" })));
-      setPlanNote("The coach couldn't be reached, so this is a basic routine.");
+      setPlanNote(`The coach couldn't be reached (${err.message}), so this is a basic routine.`);
     }
     setPlanLoading(false);
     setTimeout(() => planRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 150);
@@ -1579,10 +1611,13 @@ export default function CuteFit() {
   };
 
   return (
-    <div className="min-h-screen w-full cutefit" style={{ ...themeVars, colorScheme: dark ? "dark" : "light", background: BG, color: INK, fontFamily: FONT }}>
+    <div className="min-h-dvh w-full cutefit" style={{ ...themeVars, colorScheme: dark ? "dark" : "light", background: BG, color: INK, fontFamily: FONT }}>
       <style>{`.cutefit input::placeholder, .cutefit textarea::placeholder { color: var(--icon); opacity: 1; }`}</style>
-      <div className="max-w-md mx-auto px-4 pt-6" style={{ paddingBottom: 150 }}>
-        <header className="mb-5">
+      <div className="max-w-md mx-auto px-4" style={{ paddingBottom: "calc(150px + env(safe-area-inset-bottom))" }}>
+        <header
+          className="mb-5 -mx-4 px-4 pb-2"
+          style={{ position: "sticky", top: 0, zIndex: 40, background: BG, paddingTop: "calc(env(safe-area-inset-top) + 12px)" }}
+        >
           <div
           className="flex items-center gap-3 p-2 mb-3"
           role="img"
@@ -2585,7 +2620,7 @@ export default function CuteFit() {
             aria-label={sel.name}
             onClick={(e) => e.stopPropagation()}
             className="w-full max-w-md p-5 flex flex-col gap-4 overflow-y-auto"
-            style={{ background: CARD, borderTopLeftRadius: 28, borderTopRightRadius: 28, maxHeight: "92vh" }}
+            style={{ background: CARD, borderTopLeftRadius: 28, borderTopRightRadius: 28, maxHeight: "92dvh", overscrollBehavior: "contain", paddingBottom: "calc(20px + env(safe-area-inset-bottom))" }}
           >
             <div className="flex items-start justify-between gap-2">
               <div>
@@ -2994,7 +3029,7 @@ export default function CuteFit() {
             aria-label="Log food"
             onClick={(e) => e.stopPropagation()}
             className="w-full max-w-md p-5 flex flex-col gap-4 overflow-y-auto"
-            style={{ background: CARD, borderTopLeftRadius: 28, borderTopRightRadius: 28, maxHeight: "92vh" }}
+            style={{ background: CARD, borderTopLeftRadius: 28, borderTopRightRadius: 28, maxHeight: "92dvh", overscrollBehavior: "contain", paddingBottom: "calc(20px + env(safe-area-inset-bottom))" }}
           >
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-bold" style={{ color: PINE }}>Log food or drink</h2>
