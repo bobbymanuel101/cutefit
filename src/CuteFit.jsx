@@ -1027,6 +1027,15 @@ export default function CuteFit() {
   const coachFileRef = useRef(null);
   const machPhotoRef = useRef(null);
   const planRef = useRef(null);
+  const scrollRef = useRef(null);
+  // iPhone Safari can leave the page shifted after the keyboard closes; put it back
+  useEffect(() => {
+    const reset = () => setTimeout(() => {
+      if (!document.activeElement || !/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName)) window.scrollTo(0, 0);
+    }, 60);
+    document.addEventListener("focusout", reset);
+    return () => document.removeEventListener("focusout", reset);
+  }, []);
   const [ciWeight, setCiWeight] = useState(75);
   const [actType, setActType] = useState("walk");
   const [actMins, setActMins] = useState(30);
@@ -1657,7 +1666,10 @@ export default function CuteFit() {
     return (
       <button
         key={id}
-        onClick={() => setTab(id)}
+        onClick={() => {
+          setTab(id);
+          scrollRef.current?.scrollTo({ top: 0 });
+        }}
         aria-current={active ? "page" : undefined}
         className="flex-1 flex flex-col items-center gap-1 py-2"
         style={{ color: active ? PINE : ICON }}
@@ -1674,11 +1686,19 @@ export default function CuteFit() {
   };
 
   return (
-    <div className="min-h-dvh w-full cutefit" style={{ ...themeVars, colorScheme: dark ? "dark" : "light", background: BG, color: INK, fontFamily: FONT }}>
+    <div
+      className="w-full cutefit flex flex-col"
+      style={{ ...themeVars, position: "fixed", inset: 0, colorScheme: dark ? "dark" : "light", background: BG, color: INK, fontFamily: FONT }}
+    >
       <style>{`.cutefit input::placeholder, .cutefit textarea::placeholder { color: var(--icon); opacity: 1; }`}</style>
+      <main
+        ref={scrollRef}
+        className="flex-1 min-h-0 flex flex-col"
+        style={{ overflowY: "auto", overflowX: "hidden", overscrollBehavior: "contain", WebkitOverflowScrolling: "touch" }}
+      >
       <div
-        className="max-w-md mx-auto px-4 flex flex-col"
-        style={{ minHeight: "100dvh", paddingBottom: `calc(${tab === "food" ? 84 : 110}px + env(safe-area-inset-bottom))` }}
+        className="w-full max-w-md mx-auto px-4 flex flex-col"
+        style={{ flex: "1 0 auto", paddingBottom: tab === "food" ? 14 : 28 }}
       >
         <header
           className="mb-3 -mx-4 px-4 pb-2"
@@ -2606,6 +2626,22 @@ export default function CuteFit() {
           </p>
         )}
       </div>
+      </main>
+
+      {/* Bottom nav */}
+      <nav
+        className="shrink-0 w-full flex justify-center"
+        style={{ background: CARD, boxShadow: "var(--nav-shadow)", borderTop: `1px solid ${LINE}`, paddingBottom: "env(safe-area-inset-bottom)" }}
+        aria-label="Main"
+      >
+        <div className="w-full max-w-md flex px-2">
+          {navBtn("food", Utensils, "Food")}
+          {navBtn("lift", Dumbbell, "Workout")}
+          {navBtn("mach", Cog, "Machines")}
+          {navBtn("act", ActivityIcon, "Activity")}
+          {navBtn("me", User, "Goals")}
+        </div>
+      </nav>
 
       {/* Timer pill */}
       {timer && (
@@ -3029,20 +3065,6 @@ export default function CuteFit() {
         );
       })()}
 
-      {/* Bottom nav */}
-      <nav
-        className="fixed bottom-0 inset-x-0 flex justify-center"
-        style={{ background: CARD, boxShadow: "var(--nav-shadow)", borderTop: `1px solid ${LINE}`, paddingBottom: "env(safe-area-inset-bottom)" }}
-        aria-label="Main"
-      >
-        <div className="w-full max-w-md flex px-2">
-          {navBtn("food", Utensils, "Food")}
-          {navBtn("lift", Dumbbell, "Workout")}
-          {navBtn("mach", Cog, "Machines")}
-          {navBtn("act", ActivityIcon, "Activity")}
-          {navBtn("me", User, "Goals")}
-        </div>
-      </nav>
 
 
       {/* Meals today sheet */}
