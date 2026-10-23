@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { ScanBarcode, PencilLine, Camera, Plus, Minus, Trash2, Dumbbell, Utensils, Sparkles, Check, Loader2, X, User, RotateCcw, Droplets, Cog, Timer, Play, Square, ExternalLink, ChevronRight, Activity as ActivityIcon } from "lucide-react";
+import { ChevronLeft, ScanBarcode, PencilLine, Camera, Plus, Minus, Trash2, Dumbbell, Utensils, Sparkles, Check, Loader2, X, User, RotateCcw, Droplets, Cog, Timer, Play, Square, ExternalLink, ChevronRight, Activity as ActivityIcon } from "lucide-react";
 import { BarcodeScanner, PortionPicker, LookupSpinner, lookupBarcode, findBarcodeInImage } from "./Barcode.jsx";
 
 /* ---------- theme ---------- */
@@ -74,6 +74,7 @@ const THEMES = {
 const LOGO_SRC = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDAwMDAgQDAwMEBAQFBgoGBgUFBgwICQcKDgwPDg4MDQ0PERYTDxAVEQ0NExoTFRcYGRkZDxIbHRsYHRYYGRj/2wBDAQQEBAYFBgsGBgsYEA0QGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBj/wAARCAB4AHgDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD4FpfwptLXWi0OpRScUU7lJjwacGqMHNeleB/gl4y8bWEWqpHBpOlS8x3l+WHnD1ijALOP9rhfetIKUnaKudWFw9bE1FSoRcpPojz1WqVJK95m/ZY1Q2LNYeMrCS7AJWK5tHhjY+m8M236lceteH63omq+GvEN1oet2clnf2r+XLC+CQeoII4IIIII4IIIrocZ0n7ysdmMy7FYBpYmm43+771oIkgzVlJulZqMelTI9dVKuZQq2NiKfpzWrpxiubtIJr2G0DcCWbOwHtuIBwPfGB3rmkl96spKT3r0qWKaO+jiLHcappGt+HL1LXWLGS2d0EkbHDJKh6OjjKup9QSKZDf4GC1elfAzXtO8YaRd/C3xbb/b7JY2urAMcSRY++I36qy53r24YEEcVxfxJ8C6j8PfGDaXcv59pKvnWd2q4E8RJAOOzAgqw7EHtg161HGO10fQwm40lXpu8X+D7f1uhltqBGCGorm7e7IOC1FejDHOx2U8yaW55pilopCa/Lj8vFpc0maQnn2pNjuesfA74d23jLxVLq2tW/naNppUvC33bmY8rGf9kY3N7YH8VfZNrbmUrkdgoAGAAOAAB0A6ADpXlvwb0SPQfhfpVlsCzyR/bLnA58yX5gD7hdg/AV2vinVWsvDckMUxh8xGMsqnBjiAyxB7Ejj8697DU1Sp+fU/duGckWAwUElapNXk30vrb0S/G5geNvi/4J8F3BtLu9nuroEgxWUYk2kdRuJAOPYnFYd/4N8JfEjW9M8Y61Y3M4ayRI7aXMIZMll8xRySA2MZxj1r5WvdTXxF45W9v22Ws1yihSeIod4AX6Bf619utCtreSQKABG7IMegOB/KsaFZ13LmWiOfIMbTz+tiKdeKlSg1yprV76v7tvMgs/hz8O5LMWsvgjQHixjBs1Df99DDZ9814t8dfgnpXgvw/D418JedDpMtytpc2M0nmfZ5GUsjRueSh2sNrZKkDkg8fQlnJgjmsf4xSWM/7OPiyK+G4Laxyw8Z2zLPHsI9OSRn0Y+tdVaMHTbS1RlxTkmG+qzq06ajKKvdK23ofDSvU6yds1T3DPHSnq9cMKtj8ljM9K+CN1ND+0P4QWEnM2pRW7Y7rJmNh+TGvq/47eE4tf8AgffXXlqbzRSL6BwOdhISVc+hBVv+AV86fsteHJNa+P1lrckZNj4ehfU53I43gFIVz6mVl49Fb0r668eXEMfwe8VvMwCLo10D+MRA/UivVwc26cpPY+uyRSnhKvN8P621Pz6ExRyM9KKpPJmU896KuOIa2PH9s07I5fOaOMUcZrasfCus6tYm70e3GoRr/rFgYF4j6Mp5Hsehr5RRlJ2SufP0MPVxEuSjFyfZK7+4xK3vBvhu88VeM7LR7SLeHcPMT91IwcszHsO34itTS/hb4z1K6SJtLNmhPMlywUAfQZJ/Kvov4b/D2z8GaURGDJdTYM9y4wz46DHZR2H4munD4SdSV5qyPseG+DcZjsRGeKpuFJO7cla/kk9de+y/A77SLZLHT47dCTgcse57n/PtXKfFvU0sfhB4ivt3ztbi0iOe8jBOPwLH8K6C71W3tGktI5VNwoG9QeYwRkFvQkcgfj0rwb48+Mo59PsPB9pJk+YL67APTgiJT74Zmx7rXp4mpyU5M/VeKMbDB5XWrp2ck4r1en4a/czw3jpjivrr4S+OJvG/gmN79JP7S08JaXUx+7PhfkkH+0VA3e4z3r5Er6r/AGetHFp8JxfMPmv72WX/AIAm2Nf1V687At+0aW1j8u4ArVYZqowfuuL5vTp+Nj1qBtpArK+IWs6bovwi1++1exiv7T7IYXs5JPLE+8hAobscsDkc/LxzXk/xd8X+MPhp47sdR0edH03VI2k+y3SeZEzx7VbHOVPKngjqK82+Ifxn1H4geEbTQptEt9PSK4FzLJFMz+YwVlAAIGB8xPOe1ddXFxipQ6n2HEXFOEp08RhNfapWs1dO676rZ7P0PNt3PWtjw14c1rxb4ig0PQLGS8vJjwi8BFHV3Y8Ko7seBXR+APhR4g8b3UVww/szSCfmvp0zvHcRJ1c+/Cjua+ufBHhDw54F0D+zPD9n5Svgz3MhDTXLDoZG7+yjAHYVjhsPKpq9EfCZLwti8wtVmnCn3fX0XX12HfDLwXZfDHwKNBs51ury5lFzqN8qlRPKBhVUHny0BIXPJJZiBnA5P9of4jw6T8PG8HWkoOoavtM4B5it1bdz6b2VQPZW9a1viR8TtI8AaLvlKXWrToTaWOeT/tvjlUH5t0Hcj4513X9S8R6/c6xq109zd3D75JG7n0A7ADAAHQAV318TGnH2MD6TPsZhctwyy/C/F18vXzZCJMmiqwfHeiueNXQ/P/aGWetW9N1TUdH1FL/S72a0uU6SRNtP0PqPY8VVpMV5Gqd0ebCcoSUouzR6npPx58V6dAI7nTNFvmA5leBonb6+WwH6V00PxT8XeIEzd+KvDHhOxI+drRxLdMO4QMWwffivBsUcit1jKv2pN/1959DR4qzGK5a1aU49nJq/q1r+KPZtZ+KmjaLpB0nwgkt5INxN5c5YM55aRy3zSOT1JwOnYAV5BdXVzfXst5dzvNPMxeSVzksT1JNQfWve/wBn74a219dL4/8AEdpHPZW0hXTLOZdyXM69ZXU9Y4zjjoz4HRWFJOpipqK/4CLq4zMOI8TTwySstIxStGK6v/Nu7Mjwb+zh458U6VBqmoT2Hh61uFEkCajvNxKh6OIUUlVPYvtz1GRXpmoQ/FX4I+FLGK/8PaL4j8N2UflLdaW8kckS5LEyqRkckndtx7ivZRfzNcPcyyvJNIxZ5HOWYnqSama+kuYjHI24MMEHkV6MMJGmvcbT7n6Hg+D3l658LWlGpazlp+TW1z5z8X+MvA3xo8GWei/2snhzW7a48+3bVl2w5Zdrx+auRhsKcnHKjiua0LwHo/g/VIG8Z2RNy7f6Pc3BWSwlPbypFyjH2Yg+1U/jh4FsvBnjqG40iEQ6bqsbTxwgfLDIpw6D/Z5DAds47VyOjeI9a0mwm0+zv3+wTjE9hMBLbzD/AGo2yv4jBHYiuOUrVPfWp8fVzP6rmUqmPoxlVi7N20e1m47XtazVrdmfVWl6lCqIFZQMDbjpjtj2rmfiB8atO8IWsmmaR5V/rhG3yzzFan1kx1b0QfjjofD9M8Q39tbTacupXem2k/yLJbHzPs4P91WPT6EH3rntf8LapocEOoytFe6bdMRBqNsxeKRupU55R+5RgG78jmumriZ8nuL5n0WecezxGFUcFTcZP4pb29PXu0vvKmq6zqWuavPqmrXst3eXDb5JpTlmP9B6AcDtVMGos804GuGMj8vlUc3zSd2TBqKYDRWqkNMrEU2pCKYawkjlaEpOtKa1PDnh/UfFHiaz0PS4w1xcvtBbhUUcs7HsqjJP0qIwlOShFXbCEJVJKEFdvRHVfCn4cy+PfFBa88yHRLIh72deC+fuwof77YPPYAn0z9gW0UMFrFbWsEVtbQRrFDBCu1IkUYVVHoBXPeFNA03wt4XtNB0lcW1uMmQjDTyH70re5/QADtVPx98QdJ+H/h77Zd7bnUJwRZ2IbBlI/ib+7GO579Bz0+9/sWOV4TmrP3nrJ/p/W7P3XIMqwvDuXyxOJklNq8n2/ur+tWWvHfj/AETwDoS3mqSeZdT5FrZRn95MR1Psg7sfoMniua8PeMPHGrXcV+Z9LSxlxIkSQFkdD0w+dx+v6dq+XPEXiLV/FPiKfWtbvGubuY8seFRR0VR0VR0AHSt3wr8SNf8AC2jXOl2ckbwyAmBpQWNo5PLp7Hup4zz9fkfrylUd9I9P+CfNYfj6nVxzliotUeiW/wA+9/uX3s739onxbBrHiXSNGhx5unQu9wA2dkkhX5M+yqD/AMCryKC5C4yaYttqera4sKR3OoX95L8gjBlkndj2xyxJr6q8AfsWaoNDXxL8VdVGkWwTzjpVrKvmovX9/Mflj9wMn1INc1qlerotWfD5hi6maY2piFG3M9uy2WvofNdo9xezrZWkEtxPLwkMKF3Y+yjk19mfsufs3aprPhPxTdfFXTW0/Rtd0w6fZ6XeDbOXLBluyh5jZCBsJw2SxwB1XR/HXwb+G0kukeA4oLq4QbJP+EcspL6Vz/tzIDuP1eofHH7TU/hz4eXk1poviXTdUvIng04arpz2yOxG0yhm4OzO7A5J2j1r1J5fCFNylXV0tl+R2LLowoyqTrJWXT8vmfD97AbTUZ7VnDmGRoyw6EqSM/pUQNMJLHJJJ9+tKDXipnzyZKDRTVPGKK0TLTBhUZ61MwqI9a0mjOQyvo/4NeFF0Dw1/bN1FjUdSQN8w5ig6qv1bhj/AMBFfOtq0Md9C9zGZIVkUyIDgsueR+IzX1j4c17TdZ02K90u5Sa3bgbeqf7LDsR6V9pwJgKFfFTrVGuaC91ddd38v1PouF40liXVm9Y7L9f67l/xn450vwJ4YOpXoE9zLlLSzDYad/f0Qdz+HU18meIfEOq+KPENxrOtXTT3Ux5PRUUdFUdlHQCvpvxz8M9M+IFiJ0uBY6zFHst7p2JiYDJEci9lyfvDkZycjivl/WdF1Tw9rtzo2s2UtnfWz+XLDIOVPX6EEYII4III4NYcbTxn1pQqq1P7Ntn5vz/I7OL8fjK9SMKn8JfDbZvq35/ktupRIpKKK+GZ8Zc9E+D3xSl+FXjd9a/sKw1eKaBoGS5+SSAnkSRSgFoyCBuwDuXKnqCPqG7t9X8dyQXnxA19/ElsVWe10+MmLS4lYBlaOAHDggjDybm+nSvhtFZ3CoCxJwAOSa+3/h7Z3um/C3w3peqBhfWtgscyv95MuzKh91VlH4Y7V6uWp1IyhJXS18r/ANfkfoXh/Qp4rE1KdelzxSum9Unfttr59tDttOitrG0S3tYYreFBhY4lCKo9gOBXiP7W3iKO58H+AvDgbM0EmoXzAnojvHGn5mOT8q9mi8yWVIIl3SSMERfUk4A/OvjX42eLIfF3xl1S6sphLptjt06yYdGihyu8ezvvf/gdaZhO1NR7nv8AiBWp0cFCh9qUtPRL/go89zTu2abRXjo/IUx4NFIKK0TLTJmqJqkaoz1rpqESYytLRPEGreHdSF7pF49vL/EByrj0ZTwRWbSGs6dWdKSnTbTWzW5MZuEuaLsz6N8EfGXSdWaKy1kppd8cKGZv3Mp9mP3T7H866T4m+CLL4ieGFltI0TxFZx4s5sgefGOfIc+ndD/CTjo3HybXceDvihrvhZo7SWR7/TV4+zyN80Y/2G7fQ8fSvscPxPSx9H6nm6vF7TW67Nr9V9zPoKGcRr0/q+NV4vr/AF+aOKmilt7l7eeJ4pY2KOjjDKwOCCOxBrZ8K+E9a8Y64NL0W3V3A3yzSHbFAn9527D9T2zXY/Ey10rX9Z0nWtGbbqOrhRJbMu1pCcBZCOx7H1xn1r1Xwnp1h4Y8PQ6Hp4XCkPczgYa4l7sfYdAOwrkwXClSrjKlKrL93C15LrdXVvNrV9vuO7IuF/r+MlTqytTha7W7vqkvVb9vuNXwD8LfCvhBYrpIV1XVgMtqFynEZ/6Yp/B/vHLfTpXpcFkY7VrqDLomBKv9wHgN9M8exI9a53Trpdq816F8PUh1XxrBosuGh1CGa1cezRnH5EA/hXo5hh6WGjyUY2ij9sjhsNlOCf1SCjCKu0utt793bqeW/FDxsPBfw2v9RtpdmpXSmxscHlZHUhpB/uJuOf7xSvi+vRfjL4qutf8AiHNpryE2ukM9nGvQGQNiV8e7DH0UV51Xw+Mre1qabI/DuMc2WY5lN03eEPdj8t383f5WF60tNp1c58sKDRSUU7lXJWNRk0UV0TYmNzSE0UVg2QJmuz8N6Vp9haf2xqyiSRV8yONuiAc5I7n09KKK7stiud1GruKuj28kpwdSdWSu4q6vtci0DV5NS+JsOq3rEsN7xqTkJhTtA+leqafrIBGXoor7fhvFVJYGTb1c5NvvpE+l4VxdXklK+rk2/XQ6/TtaUgfOK9J+F3iSHT/izoF1NIFjF2qE56bgV/mRRRU4/wB+6Z+lOrKth5057OLX3o+JfHVtcWPxP8R2d2G8+HVLmOTd13CZs1gdqKK/OWrOx/PFRWk0gozRRSuTYM0UUUXGf//Z";
 const KEY = "lift-and-fuel:v1";
 const PHOTO_KEY = "lift-and-fuel:photo:";
+const AVATAR_KEY = "lift-and-fuel:avatar";
 
 const GOALS = {
   lose: { label: "Lose weight", short: "Cutting", perKg: 2.0, water: 250 },
@@ -294,6 +295,23 @@ function bmiLabel(b) {
   if (b < 25) return "healthy weight range";
   if (b < 30) return "overweight range";
   return "obesity range";
+}
+
+// Centre-crops a photo to a small square for the profile picture
+async function squareImage(file, size) {
+  const url = URL.createObjectURL(file);
+  const img = await new Promise((res, rej) => {
+    const i = new Image();
+    i.onload = () => res(i);
+    i.onerror = rej;
+    i.src = url;
+  });
+  const side = Math.min(img.width, img.height);
+  const c = document.createElement("canvas");
+  c.width = c.height = size;
+  c.getContext("2d").drawImage(img, (img.width - side) / 2, (img.height - side) / 2, side, side, 0, 0, size, size);
+  URL.revokeObjectURL(url);
+  return c.toDataURL("image/jpeg", 0.85);
 }
 
 async function prepImage(file) {
@@ -1028,6 +1046,30 @@ export default function CuteFit() {
   const machPhotoRef = useRef(null);
   const planRef = useRef(null);
   const scrollRef = useRef(null);
+  const [showProfile, setShowProfile] = useState(false);
+  const [avatar, setAvatar] = useState(null);
+  const avatarRef = useRef(null);
+  useEffect(() => {
+    window.storage.get(AVATAR_KEY, false).then((r) => r?.value && setAvatar(r.value)).catch(() => {});
+  }, []);
+  const onPickAvatar = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    try {
+      const pic = await squareImage(file, 256);
+      setAvatar(pic);
+      await window.storage.set(AVATAR_KEY, pic, false);
+    } catch (err) {
+      console.error("Could not save profile photo", err);
+    }
+  };
+  const removeAvatar = async () => {
+    setAvatar(null);
+    try {
+      await window.storage.delete(AVATAR_KEY, false);
+    } catch {}
+  };
   // iPhone Safari can leave the page shifted after the keyboard closes; put it back
   useEffect(() => {
     const reset = () => setTimeout(() => {
@@ -1115,10 +1157,10 @@ export default function CuteFit() {
   const sel = MACHINES.find((m) => m.id === selMachine);
 
   useEffect(() => {
-    const locked = showLog || showMeals || showIdeas || !!selMachine || !!fc;
+    const locked = showLog || showMeals || showIdeas || showProfile || !!selMachine || !!fc;
     document.documentElement.classList.toggle("cf-lock", locked);
     return () => document.documentElement.classList.remove("cf-lock");
-  }, [showLog, showMeals, showIdeas, selMachine, fc]);
+  }, [showLog, showMeals, showIdeas, showProfile, selMachine, fc]);
 
   useEffect(() => {
     if (!timer || timer.done) return;
@@ -1658,6 +1700,7 @@ export default function CuteFit() {
   }[profile.goal];
   const FILTER_FOR = { Chest: "Chest", Back: "Back", Legs: "Legs", Shoulders: "Shoulders", Arms: "Arms", Core: "Core", "Full body": "All" };
 
+  const initials = (profile.name || "").trim().split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0].toUpperCase()).join("");
   const dateLabel = new Date().toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" });
 
   /* ---------- render ---------- */
@@ -1706,14 +1749,26 @@ export default function CuteFit() {
         >
           <div
           className="flex items-center gap-3 p-1.5 mb-2"
-          role="img"
-          aria-label="CuteFit"
           style={{ background: "var(--hdr-bg)", borderRadius: 22, border: "1px solid var(--hdr-border)", boxShadow: "var(--hdr-glow)" }}
         >
           <img src={LOGO_SRC} alt="" width={38} height={38} style={{ borderRadius: 12, display: "block" }} />
           <span className="text-xl font-bold" style={{ color: "#FFFFFF", letterSpacing: "-0.02em" }}>
             Cute<span style={{ color: "#FF6FD0" }}>Fit</span>
           </span>
+          <button
+            onClick={() => setShowProfile(true)}
+            aria-label="Profile and settings"
+            className="ml-auto mr-1 flex items-center justify-center overflow-hidden"
+            style={{ width: 38, height: 38, borderRadius: 19, background: "linear-gradient(135deg, #FF6FD0, #9b3df0)", border: "2px solid rgba(255,255,255,0.85)", color: "#fff" }}
+          >
+            {avatar ? (
+              <img src={avatar} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+            ) : initials ? (
+              <span className="font-bold text-sm">{initials}</span>
+            ) : (
+              <User size={20} />
+            )}
+          </button>
         </div>
           <div className="flex items-baseline justify-between gap-3">
             <h1 className="text-2xl font-bold" style={{ color: PINE }}>
@@ -1727,7 +1782,7 @@ export default function CuteFit() {
         {tab === "food" && (
           <div className="flex-1 flex flex-col gap-3">
             {!store.setupDone && (
-              <button onClick={() => setTab("me")} className="text-left p-4 flex items-center gap-3" style={{ ...card, background: MINT, border: "none" }}>
+              <button onClick={() => setShowProfile(true)} className="text-left p-4 flex items-center gap-3" style={{ ...card, background: MINT, border: "none" }}>
                 <Sparkles size={22} style={{ color: PINE }} />
                 <span>
                   <span className="font-bold block">Set your targets first</span>
@@ -2450,42 +2505,6 @@ export default function CuteFit() {
               )}
             </section>
 
-            <section className="p-5" style={card}>
-              <h2 className="font-bold text-lg mb-1">About you</h2>
-              <p className="text-sm mb-3" style={{ color: MUTED }}>Tap + or -, or tap a number to type it.</p>
-              <p className="text-sm mb-2" style={{ color: MUTED }}>Sex (only used in the calorie formula)</p>
-              <Seg
-                label="Sex"
-                value={profile.sex}
-                onChange={(v) => setProfile({ sex: v })}
-                options={[{ value: "female", label: "Female" }, { value: "male", label: "Male" }]}
-              />
-              <Stepper label="Age" unit="years" step={1} min={10} max={100} value={profile.age} onChange={(v) => setProfile({ age: v })} color={INK} />
-              <div style={{ borderTop: `1px solid ${LINE}` }} />
-              <Stepper label="Height" unit="cm" step={1} min={100} max={250} value={profile.height} onChange={(v) => setProfile({ height: v })} color={INK} />
-              <div style={{ borderTop: `1px solid ${LINE}` }} />
-              <Stepper label="Current weight" unit="kg" step={0.5} min={30} max={300} value={profile.weight} onChange={(v) => setProfile({ weight: v })} color={INK} />
-              <div style={{ borderTop: `1px solid ${LINE}` }} />
-              <Stepper label="Target weight" unit="kg (your goal)" step={0.5} min={30} max={300} value={profile.targetWeight} onChange={(v) => setProfile({ targetWeight: v })} color={PINE} />
-              <h3 className="font-semibold mt-3 mb-2">How active are you?</h3>
-              <div className="flex flex-col gap-2">
-                {Object.entries(ACTIVITY).map(([k, a]) => {
-                  const active = profile.activity === k;
-                  return (
-                    <button
-                      key={k}
-                      onClick={() => setProfile({ activity: k })}
-                      aria-pressed={active}
-                      className="text-left p-3"
-                      style={{ borderRadius: 14, background: active ? BTNG : PANEL, color: active ? "#fff" : INK }}
-                    >
-                      <span className="font-bold block">{a.label}</span>
-                      <span className="text-xs" style={{ color: active ? ONPINE : MUTED }}>{a.hint}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </section>
 
             <section className="p-5" style={card}>
               <h2 className="font-bold text-lg mb-3">What's your goal?</h2>
@@ -2500,7 +2519,12 @@ export default function CuteFit() {
             <section className="p-5 flex flex-col gap-3" style={card}>
               <h2 className="font-bold text-lg">Suggested for you</h2>
               {!calc ? (
-                <p style={{ color: MUTED }}>Choose your sex and check your age, height and weight above to see suggested targets.</p>
+                <div className="flex flex-col gap-3">
+                  <p style={{ color: MUTED }}>Add your age, height and weight in your profile to see suggested targets.</p>
+                  <button onClick={() => setShowProfile(true)} className="py-3 font-bold" style={{ borderRadius: 16, background: MINT, color: PINE }}>
+                    Open my profile
+                  </button>
+                </div>
               ) : (
                 <>
                   <div className="p-4" style={{ background: MINT, borderRadius: 16 }}>
@@ -2562,11 +2586,11 @@ export default function CuteFit() {
                     </p>
                   )}
                   <p className="text-sm" style={{ color: MUTED }}>
-                    Your daily water, calories and protein update automatically when you change your goal or details. You can still fine-tune them below.
+                    Your daily water, calories and protein update automatically when you change your goal or details. You can fine-tune them in your profile.
                   </p>
                   {calc.provisional && (
                     <p className="text-sm font-semibold" style={{ color: PINE }}>
-                      Pick your sex above for a more accurate estimate. These numbers are a middle-of-the-road guess until then.
+                      Pick your sex in your profile for a more accurate estimate. These numbers are a middle-of-the-road guess until then.
                     </p>
                   )}
                   <button
@@ -2583,40 +2607,7 @@ export default function CuteFit() {
               )}
             </section>
 
-            <section className="p-5" style={card}>
-              <Stepper label="Daily water" unit="ml" step={250} min={500} max={8000} value={profile.waterTarget} onChange={(v) => setProfile({ waterTarget: v })} color={WATER} />
-              <div style={{ borderTop: `1px solid ${LINE}` }} />
-              <Stepper label="Daily calories" unit="kcal" step={50} min={800} max={6000} value={profile.calTarget} onChange={(v) => setProfile({ calTarget: v })} color={CAL} />
-              <div style={{ borderTop: `1px solid ${LINE}` }} />
-              <Stepper label="Daily protein" unit="grams" step={5} min={20} max={400} value={profile.proTarget} onChange={(v) => setProfile({ proTarget: v })} color={PROTEIN} />
-              <div style={{ borderTop: `1px solid ${LINE}` }} />
-              <Stepper label="Daily steps" unit="steps" step={500} min={1000} max={40000} value={profile.stepTarget} onChange={(v) => setProfile({ stepTarget: v })} color={STEPS} />
-              <div style={{ borderTop: `1px solid ${LINE}` }} />
-              <Stepper label="Active minutes" unit="minutes a day" step={5} min={5} max={300} value={profile.activeTarget} onChange={(v) => setProfile({ activeTarget: v })} color={ACTIVE} />
-              <div style={{ borderTop: `1px solid ${LINE}` }} />
-              <Stepper label="Training days" unit="strength sessions a week" step={1} min={2} max={5} value={profile.trainDays} onChange={(v) => setProfile({ trainDays: v })} color={PINE} />
-              <button
-                onClick={() => setProfile({ proTarget: Math.round(profile.weight * GOALS[profile.goal].perKg) })}
-                className="w-full mt-3 py-3 font-bold"
-                style={{ borderRadius: 16, background: MINT, color: PINE }}
-              >
-                Set protein from my weight and goal
-              </button>
-              <p className="text-xs mt-3" style={{ color: MUTED }}>
-                These are general estimates, not medical advice. A dietitian or doctor can set numbers that fit you.
-              </p>
-            </section>
 
-            <section className="p-5 flex flex-col gap-3" style={card}>
-              <h2 className="font-bold text-lg">Appearance</h2>
-              <Seg
-                label="Appearance"
-                value={look}
-                onChange={(v) => setStore((st) => ({ ...st, look: v }))}
-                options={[{ value: "light", label: "Light" }, { value: "dark", label: "Dark" }, { value: "neon", label: "Neon" }, { value: "auto", label: "Auto" }]}
-              />
-              <p className="text-sm" style={{ color: MUTED }}>Dark is a neutral charcoal look. Neon is the purple glow. Auto switches between Light and Dark with your phone's setting.</p>
-            </section>
           </div>
         )}
 
@@ -3161,6 +3152,144 @@ export default function CuteFit() {
               )}
           <p className="p-3 text-sm" style={{ background: PANEL, borderRadius: 14 }}>{tip}</p>
         </BottomSheet>
+      )}
+
+
+      {/* Profile & settings screen */}
+      {showProfile && (
+        <div
+          role="dialog"
+          aria-label="Profile and settings"
+          className="fixed inset-0 flex flex-col"
+          style={{ background: BG, zIndex: 56, paddingTop: "env(safe-area-inset-top)" }}
+        >
+          <div className="w-full max-w-md mx-auto px-4 py-3 flex items-center gap-2">
+            <button onClick={() => setShowProfile(false)} aria-label="Back" className="flex items-center gap-1 font-semibold" style={{ color: PINE, padding: "6px 6px 6px 0" }}>
+              <ChevronLeft size={24} /> Back
+            </button>
+            <h1 className="text-xl font-bold ml-auto mr-auto" style={{ color: PINE }}>Profile & settings</h1>
+            <span style={{ width: 62 }} />
+          </div>
+          <div className="flex-1 min-h-0" style={{ overflowY: "auto", overscrollBehavior: "contain" }}>
+            <div className="w-full max-w-md mx-auto px-4 flex flex-col gap-4" style={{ paddingBottom: "calc(28px + env(safe-area-inset-bottom))" }}>
+              {/* Identity */}
+              <section className="p-5 flex flex-col items-center gap-3 text-center" style={card}>
+                <input ref={avatarRef} type="file" accept="image/*" onChange={onPickAvatar} className="hidden" />
+                <button
+                  onClick={() => avatarRef.current?.click()}
+                  aria-label={avatar ? "Change profile photo" : "Add profile photo"}
+                  className="relative flex items-center justify-center overflow-hidden"
+                  style={{ width: 104, height: 104, borderRadius: 52, background: "linear-gradient(135deg, #FF6FD0, #9b3df0)", color: "#fff", boxShadow: "0 8px 22px rgba(155,61,240,0.35)" }}
+                >
+                  {avatar ? (
+                    <img src={avatar} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  ) : initials ? (
+                    <span className="text-4xl font-bold">{initials}</span>
+                  ) : (
+                    <User size={46} />
+                  )}
+                  <span className="absolute flex items-center justify-center" style={{ right: 4, bottom: 4, width: 30, height: 30, borderRadius: 15, background: CARD, color: PINE, border: `1px solid ${LINE}` }}>
+                    <Camera size={16} />
+                  </span>
+                </button>
+                {avatar && (
+                  <button onClick={removeAvatar} className="text-sm font-semibold" style={{ color: MUTED }}>Remove photo</button>
+                )}
+                <input
+                  value={profile.name || ""}
+                  onChange={(e) => setProfile({ name: e.target.value.slice(0, 40) })}
+                  placeholder="Your name"
+                  aria-label="Your name"
+                  className="w-full text-center text-xl font-bold px-4 py-3 outline-none"
+                  style={inputStyle}
+                />
+                <p className="text-sm" style={{ color: MUTED }}>
+                  {profile.weight} kg · target {profile.targetWeight} kg · {GOALS[profile.goal].label}
+                </p>
+              </section>
+
+            <section className="p-5" style={card}>
+              <h2 className="font-bold text-lg mb-1">About you</h2>
+              <p className="text-sm mb-3" style={{ color: MUTED }}>Tap + or -, or tap a number to type it.</p>
+              <p className="text-sm mb-2" style={{ color: MUTED }}>Sex (only used in the calorie formula)</p>
+              <Seg
+                label="Sex"
+                value={profile.sex}
+                onChange={(v) => setProfile({ sex: v })}
+                options={[{ value: "female", label: "Female" }, { value: "male", label: "Male" }]}
+              />
+              <Stepper label="Age" unit="years" step={1} min={10} max={100} value={profile.age} onChange={(v) => setProfile({ age: v })} color={INK} />
+              <div style={{ borderTop: `1px solid ${LINE}` }} />
+              <Stepper label="Height" unit="cm" step={1} min={100} max={250} value={profile.height} onChange={(v) => setProfile({ height: v })} color={INK} />
+              <div style={{ borderTop: `1px solid ${LINE}` }} />
+              <Stepper label="Current weight" unit="kg" step={0.5} min={30} max={300} value={profile.weight} onChange={(v) => setProfile({ weight: v })} color={INK} />
+              <div style={{ borderTop: `1px solid ${LINE}` }} />
+              <Stepper label="Target weight" unit="kg (your goal)" step={0.5} min={30} max={300} value={profile.targetWeight} onChange={(v) => setProfile({ targetWeight: v })} color={PINE} />
+              <h3 className="font-semibold mt-3 mb-2">How active are you?</h3>
+              <div className="flex flex-col gap-2">
+                {Object.entries(ACTIVITY).map(([k, a]) => {
+                  const active = profile.activity === k;
+                  return (
+                    <button
+                      key={k}
+                      onClick={() => setProfile({ activity: k })}
+                      aria-pressed={active}
+                      className="text-left p-3"
+                      style={{ borderRadius: 14, background: active ? BTNG : PANEL, color: active ? "#fff" : INK }}
+                    >
+                      <span className="font-bold block">{a.label}</span>
+                      <span className="text-xs" style={{ color: active ? ONPINE : MUTED }}>{a.hint}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+            <section className="p-5" style={card}>
+              <h2 className="font-bold text-lg mb-1">Daily targets</h2>
+              <p className="text-sm" style={{ color: MUTED }}>These update when you change your details. Fine-tune them here.</p>
+              <Stepper label="Daily water" unit="ml" step={250} min={500} max={8000} value={profile.waterTarget} onChange={(v) => setProfile({ waterTarget: v })} color={WATER} />
+              <div style={{ borderTop: `1px solid ${LINE}` }} />
+              <Stepper label="Daily calories" unit="kcal" step={50} min={800} max={6000} value={profile.calTarget} onChange={(v) => setProfile({ calTarget: v })} color={CAL} />
+              <div style={{ borderTop: `1px solid ${LINE}` }} />
+              <Stepper label="Daily protein" unit="grams" step={5} min={20} max={400} value={profile.proTarget} onChange={(v) => setProfile({ proTarget: v })} color={PROTEIN} />
+              <div style={{ borderTop: `1px solid ${LINE}` }} />
+              <Stepper label="Daily steps" unit="steps" step={500} min={1000} max={40000} value={profile.stepTarget} onChange={(v) => setProfile({ stepTarget: v })} color={STEPS} />
+              <div style={{ borderTop: `1px solid ${LINE}` }} />
+              <Stepper label="Active minutes" unit="minutes a day" step={5} min={5} max={300} value={profile.activeTarget} onChange={(v) => setProfile({ activeTarget: v })} color={ACTIVE} />
+              <div style={{ borderTop: `1px solid ${LINE}` }} />
+              <Stepper label="Training days" unit="strength sessions a week" step={1} min={2} max={5} value={profile.trainDays} onChange={(v) => setProfile({ trainDays: v })} color={PINE} />
+              <button
+                onClick={() => setProfile({ proTarget: Math.round(profile.weight * GOALS[profile.goal].perKg) })}
+                className="w-full mt-3 py-3 font-bold"
+                style={{ borderRadius: 16, background: MINT, color: PINE }}
+              >
+                Set protein from my weight and goal
+              </button>
+              <p className="text-xs mt-3" style={{ color: MUTED }}>
+                These are general estimates, not medical advice. A dietitian or doctor can set numbers that fit you.
+              </p>
+            </section>
+            <section className="p-5 flex flex-col gap-3" style={card}>
+              <h2 className="font-bold text-lg">Appearance</h2>
+              <Seg
+                label="Appearance"
+                value={look}
+                onChange={(v) => setStore((st) => ({ ...st, look: v }))}
+                options={[{ value: "light", label: "Light" }, { value: "dark", label: "Dark" }, { value: "neon", label: "Neon" }, { value: "auto", label: "Auto" }]}
+              />
+              <p className="text-sm" style={{ color: MUTED }}>Dark is a neutral charcoal look. Neon is the purple glow. Auto switches between Light and Dark with your phone's setting.</p>
+            </section>
+
+              <section className="p-5 flex flex-col gap-2" style={card}>
+                <h2 className="font-bold text-lg">About CuteFit</h2>
+                <p className="text-sm" style={{ color: MUTED }}>
+                  Your data stays on this phone. Meal estimates and ideas use AI and are approximate; barcode numbers come from the product label via Open Food Facts.
+                </p>
+                <p className="text-xs" style={{ color: MUTED }}>General guidance only, not medical advice.</p>
+              </section>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Log sheet */}
