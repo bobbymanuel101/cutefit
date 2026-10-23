@@ -134,7 +134,7 @@ async function askAnthropic(key, system, messages, deadline) {
 
 export default async (req) => {
   if (req.method !== "POST") return fail(405, "Method not allowed");
-  const geminiKey = process.env.GEMINI_API_KEY;
+  const geminiKey = (process.env.GEMINI_API_KEY || "").trim().replace(/^["']|["']$/g, "");
   const anthropicKey = process.env.ANTHROPIC_API_KEY;
   if (!geminiKey && !anthropicKey) {
     return fail(500, "AI isn't set up yet: add GEMINI_API_KEY in Netlify, then redeploy.");

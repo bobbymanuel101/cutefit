@@ -366,6 +366,38 @@ async function askClaudeText(system, content) {
 }
 
 /* ---------- small UI pieces ---------- */
+function BottomSheet({ title, icon, onClose, children }) {
+  return (
+    <div className="fixed inset-0 flex items-end justify-center" style={{ background: "rgba(20,6,34,0.55)", zIndex: 50 }} onClick={onClose}>
+      <div
+        role="dialog"
+        aria-label={title}
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-md p-5 flex flex-col gap-4 overflow-y-auto"
+        style={{
+          background: "var(--card)",
+          borderTopLeftRadius: 28,
+          borderTopRightRadius: 28,
+          maxHeight: "92dvh",
+          overscrollBehavior: "contain",
+          paddingBottom: "calc(20px + env(safe-area-inset-bottom))",
+        }}
+      >
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-bold flex items-center gap-2" style={{ color: "var(--pine)" }}>
+            {icon}
+            {title}
+          </h2>
+          <button onClick={onClose} aria-label="Close" style={{ padding: 8, color: "var(--muted)" }}>
+            <X size={22} />
+          </button>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
+
 const card = { background: CARD, border: `1px solid ${LINE}`, borderRadius: 24, boxShadow: "var(--card-shadow)" };
 const inputStyle = { background: CARD, border: `1.5px solid ${LINE}`, color: INK, borderRadius: 14 };
 
@@ -959,6 +991,8 @@ export default function CuteFit() {
   const [mealError, setMealError] = useState("");
   const fileRef = useRef(null);
   const [scanning, setScanning] = useState(false);
+  const [showMeals, setShowMeals] = useState(false);
+  const [showIdeas, setShowIdeas] = useState(false);
   const [product, setProduct] = useState(null);
   const [lookingUp, setLookingUp] = useState(false);
 
@@ -1065,10 +1099,10 @@ export default function CuteFit() {
   const sel = MACHINES.find((m) => m.id === selMachine);
 
   useEffect(() => {
-    const locked = showLog || !!selMachine || !!fc;
+    const locked = showLog || showMeals || showIdeas || !!selMachine || !!fc;
     document.documentElement.classList.toggle("cf-lock", locked);
     return () => document.documentElement.classList.remove("cf-lock");
-  }, [showLog, selMachine, fc]);
+  }, [showLog, showMeals, showIdeas, selMachine, fc]);
 
   useEffect(() => {
     if (!timer || timer.done) return;
@@ -1635,31 +1669,33 @@ export default function CuteFit() {
   return (
     <div className="min-h-dvh w-full cutefit" style={{ ...themeVars, colorScheme: dark ? "dark" : "light", background: BG, color: INK, fontFamily: FONT }}>
       <style>{`.cutefit input::placeholder, .cutefit textarea::placeholder { color: var(--icon); opacity: 1; }`}</style>
-      <div className="max-w-md mx-auto px-4" style={{ paddingBottom: `calc(${tab === "food" ? 184 : 110}px + env(safe-area-inset-bottom))` }}>
+      <div className="max-w-md mx-auto px-4" style={{ paddingBottom: "calc(110px + env(safe-area-inset-bottom))" }}>
         <header
-          className="mb-5 -mx-4 px-4 pb-2"
+          className="mb-3 -mx-4 px-4 pb-2"
           style={{ position: "sticky", top: 0, zIndex: 40, background: BG, paddingTop: "calc(env(safe-area-inset-top) + 12px)" }}
         >
           <div
-          className="flex items-center gap-3 p-2 mb-3"
+          className="flex items-center gap-3 p-1.5 mb-2"
           role="img"
           aria-label="CuteFit"
           style={{ background: "var(--hdr-bg)", borderRadius: 22, border: "1px solid var(--hdr-border)", boxShadow: "var(--hdr-glow)" }}
         >
-          <img src={LOGO_SRC} alt="" width={44} height={44} style={{ borderRadius: 14, display: "block" }} />
-          <span className="text-2xl font-bold" style={{ color: "#FFFFFF", letterSpacing: "-0.02em" }}>
+          <img src={LOGO_SRC} alt="" width={38} height={38} style={{ borderRadius: 12, display: "block" }} />
+          <span className="text-xl font-bold" style={{ color: "#FFFFFF", letterSpacing: "-0.02em" }}>
             Cute<span style={{ color: "#FF6FD0" }}>Fit</span>
           </span>
         </div>
-          <p className="text-sm" style={{ color: MUTED }}>{dateLabel}</p>
-          <h1 className="text-3xl font-bold" style={{ color: PINE }}>
-            {{ food: "Today", lift: "Workout", mach: "Gym machines", act: "Activity", me: "My goals" }[tab]}
-          </h1>
+          <div className="flex items-baseline justify-between gap-3">
+            <h1 className="text-2xl font-bold" style={{ color: PINE }}>
+              {{ food: "Today", lift: "Workout", mach: "Gym machines", act: "Activity", me: "My goals" }[tab]}
+            </h1>
+            <p className="text-sm truncate" style={{ color: MUTED }}>{dateLabel}</p>
+          </div>
         </header>
 
         {/* ===== FOOD ===== */}
         {tab === "food" && (
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-3">
             {!store.setupDone && (
               <button onClick={() => setTab("me")} className="text-left p-4 flex items-center gap-3" style={{ ...card, background: MINT, border: "none" }}>
                 <Sparkles size={22} style={{ color: PINE }} />
@@ -1680,30 +1716,29 @@ export default function CuteFit() {
               </button>
             )}
 
-            <section className="p-5 flex flex-col items-center" style={card}>
-              <div className="relative" style={{ width: 196, height: 196 }}>
-                <Ring value={totals.pro} target={profile.proTarget} color={PROTEIN} />
+            <section className="p-4 flex items-center gap-4" style={card}>
+              <div className="relative shrink-0" style={{ width: 128, height: 128 }}>
+                <Ring value={totals.pro} target={profile.proTarget} color={PROTEIN} size={128} />
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
                   {proHit ? (
                     <>
-                      <Check size={34} style={{ color: PROTEIN }} strokeWidth={3} />
-                      <span className="font-bold mt-1">Protein done</span>
-                      <span className="text-sm" style={{ color: MUTED }}>{totals.pro} g eaten</span>
+                      <Check size={28} style={{ color: PROTEIN }} strokeWidth={3} />
+                      <span className="font-bold text-sm mt-1">Protein done</span>
+                      <span className="text-xs" style={{ color: MUTED }}>{totals.pro} g eaten</span>
                     </>
                   ) : (
                     <>
-                      <span className="text-5xl font-bold" style={{ color: PROTEIN }}>{proLeft}</span>
-                      <span className="text-sm font-semibold" style={{ color: MUTED }}>g protein to go</span>
+                      <span className="text-3xl font-bold leading-none" style={{ color: PROTEIN }}>{proLeft}</span>
+                      <span className="text-xs font-semibold mt-1" style={{ color: MUTED }}>g protein<br />to go</span>
                     </>
                   )}
                 </div>
               </div>
-
-              <div className="w-full mt-5">
-                <div className="flex items-baseline justify-between mb-2">
-                  <span className="font-semibold">Calories</span>
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-col mb-2">
+                  <span className="font-semibold text-sm" style={{ color: MUTED }}>Calories</span>
                   <span style={{ color: calLeft < 0 ? OVER : MUTED }}>
-                    <span className="font-bold text-lg" style={{ color: calLeft < 0 ? OVER : INK }}>
+                    <span className="font-bold text-2xl" style={{ color: calLeft < 0 ? OVER : INK }}>
                       {Math.abs(calLeft)}
                     </span>{" "}
                     kcal {calLeft < 0 ? "over" : "left"}
@@ -1724,14 +1759,10 @@ export default function CuteFit() {
                   {totals.cal} of {profile.calTarget} kcal eaten
                 </p>
               </div>
-
-              <p className="mt-4 p-3 text-sm w-full" style={{ background: PANEL, borderRadius: 14 }}>
-                {tip}
-              </p>
             </section>
 
             {/* Water */}
-            <section className="p-5" style={card}>
+            <section className="p-4" style={card}>
               <div className="flex items-baseline justify-between mb-2">
                 <h2 className="font-bold text-lg flex items-center gap-2">
                   <Droplets size={20} style={{ color: WATER }} /> Water
@@ -1740,7 +1771,7 @@ export default function CuteFit() {
                   <span className="font-bold text-lg" style={{ color: WATER }}>{(waterMl / 1000).toFixed(2)}</span> / {(profile.waterTarget / 1000).toFixed(1)} L
                 </span>
               </div>
-              <div className="overflow-hidden mb-3" style={{ height: 12, borderRadius: 6, background: TROUGH }}>
+              <div className="overflow-hidden mb-3" style={{ height: 10, borderRadius: 5, background: TROUGH }}>
                 <div
                   style={{
                     width: `${Math.min(100, profile.waterTarget ? (waterMl / profile.waterTarget) * 100 : 0)}%`,
@@ -1752,13 +1783,13 @@ export default function CuteFit() {
                 />
               </div>
               <div className="flex gap-2">
-                <button onClick={() => addWater(250)} className="flex-1 py-3 font-bold" style={{ borderRadius: 14, background: TINT_W, color: WATERTXT }}>
+                <button onClick={() => addWater(250)} className="flex-1 py-2.5 font-bold" style={{ borderRadius: 14, background: TINT_W, color: WATERTXT }}>
                   + 250 ml
                 </button>
-                <button onClick={() => addWater(500)} className="flex-1 py-3 font-bold" style={{ borderRadius: 14, background: TINT_W, color: WATERTXT }}>
+                <button onClick={() => addWater(500)} className="flex-1 py-2.5 font-bold" style={{ borderRadius: 14, background: TINT_W, color: WATERTXT }}>
                   + 500 ml
                 </button>
-                <button onClick={() => addWater(-250)} aria-label="Undo 250 ml" className="px-4 py-3 font-bold" style={{ borderRadius: 14, background: PANEL, color: MUTED }}>
+                <button onClick={() => addWater(-250)} aria-label="Undo 250 ml" className="px-4 py-2.5 font-bold" style={{ borderRadius: 14, background: PANEL, color: MUTED }}>
                   <Minus size={18} />
                 </button>
               </div>
@@ -1767,88 +1798,38 @@ export default function CuteFit() {
               )}
             </section>
 
-            {/* Meals */}
-            <section className="p-5" style={card}>
-              <h2 className="font-bold text-lg mb-2">Eaten today</h2>
-              {meals.length === 0 ? (
-                <p style={{ color: MUTED }}>Nothing yet. Tap "Log food" to add your first meal.</p>
-              ) : (
-                <ul>
-                  {meals.map((m, idx) => (
-                    <li key={m.id} className="flex items-center gap-3 py-3" style={{ borderTop: idx ? `1px solid ${LINE}` : "none" }}>
-                      <div className="flex-1">
-                        <div className="font-semibold">{m.name}</div>
-                        <div className="text-sm" style={{ color: MUTED }}>
-                          {m.type ? `${m.type} · ` : ""}{m.time} · <span style={{ color: PROTEIN, fontWeight: 600 }}>{m.protein} g protein</span> · {m.calories} kcal
-                        </div>
-                      </div>
-                      <button onClick={() => deleteMeal(m.id)} aria-label={`Delete ${m.name}`} style={{ color: ICON, padding: 8 }}>
-                        <Trash2 size={18} />
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </section>
+            {/* Shortcuts: meal list and AI ideas open in sheets so the page stays one screen */}
+            <div className="grid grid-cols-2 gap-3">
+              <button onClick={() => setShowMeals(true)} className="p-4 text-left flex flex-col gap-1" style={card}>
+                <span className="flex items-center justify-between w-full">
+                  <Utensils size={20} style={{ color: PINE }} />
+                  <ChevronRight size={18} style={{ color: ICON }} />
+                </span>
+                <span className="font-bold mt-1">Meals today</span>
+                <span className="text-sm" style={{ color: MUTED }}>
+                  {meals.length === 0 ? "None yet" : `${meals.length} logged · ${totals.cal} kcal`}
+                </span>
+              </button>
+              <button onClick={() => setShowIdeas(true)} className="p-4 text-left flex flex-col gap-1" style={{ ...card, background: MINT, border: "none" }}>
+                <span className="flex items-center justify-between w-full">
+                  <Sparkles size={20} style={{ color: PINE }} />
+                  <ChevronRight size={18} style={{ color: PINE }} />
+                </span>
+                <span className="font-bold mt-1" style={{ color: PINE }}>Meal ideas</span>
+                <span className="text-sm" style={{ color: MUTED }}>AI picks for what's left</span>
+              </button>
+            </div>
 
-            {/* Ideas */}
-            <section className="p-5 flex flex-col gap-3" style={card}>
-              <div>
-                <h2 className="font-bold text-lg">Not sure what to eat?</h2>
-                <p className="text-sm" style={{ color: MUTED }}>
-                  Pick a meal for ideas sized to what you have left today.
-                </p>
-              </div>
-              <Seg label="Meal" value={ideaCat} onChange={setIdeaCat} options={MEAL_TYPES.map((t) => ({ value: t, label: t }))} />
-              <p className="text-sm font-semibold">
-                {budget.cal > 0
-                  ? `About ${budget.cal} kcal and ${budget.pro} g protein for ${ideaCat.toLowerCase()}`
-                  : `You're at your calorie limit, so ${ideaCat.toLowerCase()} ideas will be very light.`}
-              </p>
-
-              {!catIdeas && (
-                <button
-                  onClick={() => getIdeas(ideaCat)}
-                  disabled={!!ideasLoading}
-                  className="flex items-center justify-center gap-2 py-3 font-bold"
-                  style={{ borderRadius: 16, background: MINT, color: PINE, opacity: ideasLoading ? 0.7 : 1 }}
-                >
-                  {ideasLoading === ideaCat ? <Loader2 size={18} className="animate-spin" /> : <Sparkles size={18} />}
-                  {ideasLoading === ideaCat ? "Finding ideas..." : `Suggest ${ideaCat.toLowerCase()} ideas`}
-                </button>
-              )}
-              {ideasError && <p className="text-sm" style={{ color: OVER }}>{ideasError}</p>}
-
-              {catIdeas && (
-                <>
-                  <ul className="flex flex-col gap-2">
-                    {catIdeas.map((i, idx) => (
-                      <li key={idx} className="p-3 flex items-center gap-3" style={{ background: PANEL, borderRadius: 16 }}>
-                        <div className="flex-1">
-                          <div className="font-semibold">{i.name}</div>
-                          <div className="text-sm" style={{ color: MUTED }}>
-                            <span style={{ color: PROTEIN, fontWeight: 600 }}>{num(i.protein_g)} g protein</span> · {num(i.calories)} kcal
-                          </div>
-                          <div className="text-sm">{i.why}</div>
-                        </div>
-                        <button onClick={() => logIdea(i, ideaCat)} className="px-4 py-2 text-sm font-bold text-white" style={{ background: BTNG, borderRadius: 12 }}>
-                          Log
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                  <button
-                    onClick={() => getIdeas(ideaCat)}
-                    disabled={!!ideasLoading}
-                    className="flex items-center justify-center gap-2 text-sm font-semibold"
-                    style={{ color: MUTED }}
-                  >
-                    {ideasLoading === ideaCat ? <Loader2 size={14} className="animate-spin" /> : <RotateCcw size={14} />}
-                    Show different ideas
-                  </button>
-                </>
-              )}
-            </section>
+            <button
+              onClick={() => {
+                setLogType(inferType());
+                setShowLog(true);
+              }}
+              className="flex items-center justify-center gap-2 py-4 font-bold text-white text-lg"
+              style={{ borderRadius: 20, background: BTNG, boxShadow: "0 8px 20px rgba(60,15,84,0.30)" }}
+            >
+              <Plus size={22} strokeWidth={3} /> Log food
+            </button>
           </div>
         )}
 
@@ -2583,9 +2564,11 @@ export default function CuteFit() {
           </div>
         )}
 
-        <p className="text-xs mt-6 text-center" style={{ color: MUTED }}>
-          Photo and text estimates are approximate.
-        </p>
+        {tab !== "food" && (
+          <p className="text-xs mt-6 text-center" style={{ color: MUTED }}>
+            Photo and text estimates are approximate.
+          </p>
+        )}
       </div>
 
       {/* Timer pill */}
@@ -3010,24 +2993,6 @@ export default function CuteFit() {
         );
       })()}
 
-      {/* Floating log button */}
-      {tab === "food" && !showLog && (
-        <div className="fixed inset-x-0 flex justify-center pointer-events-none" style={{ bottom: "calc(env(safe-area-inset-bottom) + 84px)", zIndex: 30 }}>
-          <div className="w-full max-w-md px-4 flex justify-end">
-            <button
-              onClick={() => {
-                setLogType(inferType());
-                setShowLog(true);
-              }}
-              className="pointer-events-auto flex items-center gap-2 px-6 py-4 font-bold text-white"
-              style={{ borderRadius: 28, background: BTNG, boxShadow: "0 8px 20px rgba(60,15,84,0.35)" }}
-            >
-              <Plus size={22} strokeWidth={3} /> Log food
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* Bottom nav */}
       <nav
         className="fixed bottom-0 inset-x-0 flex justify-center"
@@ -3042,6 +3007,103 @@ export default function CuteFit() {
           {navBtn("me", User, "Goals")}
         </div>
       </nav>
+
+
+      {/* Meals today sheet */}
+      {showMeals && (
+        <BottomSheet title="Meals today" onClose={() => setShowMeals(false)}>
+          <p className="text-sm -mt-2" style={{ color: MUTED }}>
+            {totals.cal} kcal · <span style={{ color: PROTEIN, fontWeight: 600 }}>{totals.pro} g protein</span>
+          </p>
+              {meals.length === 0 ? (
+                <p style={{ color: MUTED }}>Nothing logged yet today.</p>
+              ) : (
+                <ul>
+                  {meals.map((m, idx) => (
+                    <li key={m.id} className="flex items-center gap-3 py-3" style={{ borderTop: idx ? `1px solid ${LINE}` : "none" }}>
+                      <div className="flex-1">
+                        <div className="font-semibold">{m.name}</div>
+                        <div className="text-sm" style={{ color: MUTED }}>
+                          {m.type ? `${m.type} · ` : ""}{m.time} · <span style={{ color: PROTEIN, fontWeight: 600 }}>{m.protein} g protein</span> · {m.calories} kcal
+                        </div>
+                      </div>
+                      <button onClick={() => deleteMeal(m.id)} aria-label={`Delete ${m.name}`} style={{ color: ICON, padding: 8 }}>
+                        <Trash2 size={18} />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+          <button
+            onClick={() => {
+              setShowMeals(false);
+              setLogType(inferType());
+              setShowLog(true);
+            }}
+            className="flex items-center justify-center gap-2 py-3 font-bold"
+            style={{ borderRadius: 16, background: MINT, color: PINE }}
+          >
+            <Plus size={18} /> Log food
+          </button>
+        </BottomSheet>
+      )}
+
+      {/* Meal ideas sheet */}
+      {showIdeas && (
+        <BottomSheet title="Meal ideas" icon={<Sparkles size={20} style={{ color: PINE }} />} onClose={() => setShowIdeas(false)}>
+          <p className="text-sm -mt-2" style={{ color: MUTED }}>Ideas sized to what you have left today.</p>
+              <Seg label="Meal" value={ideaCat} onChange={setIdeaCat} options={MEAL_TYPES.map((t) => ({ value: t, label: t }))} />
+              <p className="text-sm font-semibold">
+                {budget.cal > 0
+                  ? `About ${budget.cal} kcal and ${budget.pro} g protein for ${ideaCat.toLowerCase()}`
+                  : `You're at your calorie limit, so ${ideaCat.toLowerCase()} ideas will be very light.`}
+              </p>
+
+              {!catIdeas && (
+                <button
+                  onClick={() => getIdeas(ideaCat)}
+                  disabled={!!ideasLoading}
+                  className="flex items-center justify-center gap-2 py-3 font-bold"
+                  style={{ borderRadius: 16, background: MINT, color: PINE, opacity: ideasLoading ? 0.7 : 1 }}
+                >
+                  {ideasLoading === ideaCat ? <Loader2 size={18} className="animate-spin" /> : <Sparkles size={18} />}
+                  {ideasLoading === ideaCat ? "Finding ideas..." : `Suggest ${ideaCat.toLowerCase()} ideas`}
+                </button>
+              )}
+              {ideasError && <p className="text-sm" style={{ color: OVER }}>{ideasError}</p>}
+
+              {catIdeas && (
+                <>
+                  <ul className="flex flex-col gap-2">
+                    {catIdeas.map((i, idx) => (
+                      <li key={idx} className="p-3 flex items-center gap-3" style={{ background: PANEL, borderRadius: 16 }}>
+                        <div className="flex-1">
+                          <div className="font-semibold">{i.name}</div>
+                          <div className="text-sm" style={{ color: MUTED }}>
+                            <span style={{ color: PROTEIN, fontWeight: 600 }}>{num(i.protein_g)} g protein</span> · {num(i.calories)} kcal
+                          </div>
+                          <div className="text-sm">{i.why}</div>
+                        </div>
+                        <button onClick={() => logIdea(i, ideaCat)} className="px-4 py-2 text-sm font-bold text-white" style={{ background: BTNG, borderRadius: 12 }}>
+                          Log
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                  <button
+                    onClick={() => getIdeas(ideaCat)}
+                    disabled={!!ideasLoading}
+                    className="flex items-center justify-center gap-2 text-sm font-semibold"
+                    style={{ color: MUTED }}
+                  >
+                    {ideasLoading === ideaCat ? <Loader2 size={14} className="animate-spin" /> : <RotateCcw size={14} />}
+                    Show different ideas
+                  </button>
+                </>
+              )}
+          <p className="p-3 text-sm" style={{ background: PANEL, borderRadius: 14 }}>{tip}</p>
+        </BottomSheet>
+      )}
 
       {/* Log sheet */}
       {showLog && (
@@ -3153,6 +3215,7 @@ export default function CuteFit() {
                   </button>
                 </div>
                 {mealError && <p className="text-sm" style={{ color: OVER }}>{mealError}</p>}
+                <p className="text-xs text-center" style={{ color: MUTED }}>Photo and text estimates are approximate. Barcode numbers come from the label.</p>
               </>
             )}
 
