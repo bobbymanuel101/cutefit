@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
-import { Camera, Plus, Minus, Trash2, Dumbbell, Utensils, Sparkles, Check, Loader2, X, User, RotateCcw, Droplets, Cog, Timer, Play, Square, ExternalLink, ChevronRight, Activity as ActivityIcon } from "lucide-react";
+import { ScanBarcode, Camera, Plus, Minus, Trash2, Dumbbell, Utensils, Sparkles, Check, Loader2, X, User, RotateCcw, Droplets, Cog, Timer, Play, Square, ExternalLink, ChevronRight, Activity as ActivityIcon } from "lucide-react";
+import { BarcodeScanner, PortionPicker, LookupSpinner, lookupBarcode, findBarcodeInImage } from "./Barcode.jsx";
 
 /* ---------- theme ---------- */
 const PINE = "var(--pine)";
@@ -957,6 +958,9 @@ export default function CuteFit() {
   const [draft, setDraft] = useState(null);
   const [mealError, setMealError] = useState("");
   const fileRef = useRef(null);
+  const [scanning, setScanning] = useState(false);
+  const [product, setProduct] = useState(null);
+  const [lookingUp, setLookingUp] = useState(false);
 
   // ideas
   const [ideaCat, setIdeaCat] = useState(inferType());
@@ -1405,13 +1409,31 @@ export default function CuteFit() {
     setText("");
     setImage(null);
     setMealError("");
+    setScanning(false);
+    setProduct(null);
+    setLookingUp(false);
+  };
+
+  const findProduct = async (code) => {
+    setScanning(false);
+    setLookingUp(true);
+    setMealError("");
+    try {
+      setProduct(await lookupBarcode(code));
+    } catch (err) {
+      setMealError(err.message);
+    }
+    setLookingUp(false);
   };
 
   const onPickImage = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
     try {
-      setImage(await prepImage(file));
+      const prepared = await prepImage(file);
+      setImage(prepared);
+      // If the photo shows a barcode, use the exact label numbers instead of guessing
+      findBarcodeInImage(prepared.preview).then((code) => code && findProduct(code));
       setMealError("");
     } catch (err) {
       setMealError("That photo couldn't be read. Try a JPG or PNG.");
@@ -1613,7 +1635,7 @@ export default function CuteFit() {
   return (
     <div className="min-h-dvh w-full cutefit" style={{ ...themeVars, colorScheme: dark ? "dark" : "light", background: BG, color: INK, fontFamily: FONT }}>
       <style>{`.cutefit input::placeholder, .cutefit textarea::placeholder { color: var(--icon); opacity: 1; }`}</style>
-      <div className="max-w-md mx-auto px-4" style={{ paddingBottom: "calc(150px + env(safe-area-inset-bottom))" }}>
+      <div className="max-w-md mx-auto px-4" style={{ paddingBottom: `calc(${tab === "food" ? 184 : 110}px + env(safe-area-inset-bottom))` }}>
         <header
           className="mb-5 -mx-4 px-4 pb-2"
           style={{ position: "sticky", top: 0, zIndex: 40, background: BG, paddingTop: "calc(env(safe-area-inset-top) + 12px)" }}
@@ -2990,7 +3012,7 @@ export default function CuteFit() {
 
       {/* Floating log button */}
       {tab === "food" && !showLog && (
-        <div className="fixed inset-x-0 flex justify-center pointer-events-none" style={{ bottom: 96 }}>
+        <div className="fixed inset-x-0 flex justify-center pointer-events-none" style={{ bottom: "calc(env(safe-area-inset-bottom) + 84px)", zIndex: 30 }}>
           <div className="w-full max-w-md px-4 flex justify-end">
             <button
               onClick={() => {
@@ -3038,7 +3060,18 @@ export default function CuteFit() {
               </button>
             </div>
 
-            {!draft && (
+            {!draft && product && (
+              <PortionPicker
+                product={product}
+                onUse={(d) => {
+                  setDraft({ ...d });
+                  setProduct(null);
+                }}
+                onBack={() => setProduct(null)}
+              />
+            )}
+
+            {!draft && !product && (
               <>
                 <div>
                   <p className="text-sm font-semibold mb-2" style={{ color: MUTED }}>Which meal is this?</p>
@@ -3066,6 +3099,20 @@ export default function CuteFit() {
                     </div>
                   </div>
                 )}
+
+                <button
+                  onClick={() => {
+                    setMealError("");
+                    setScanning(true);
+                  }}
+                  disabled={lookingUp}
+                  className="flex items-center justify-center gap-2 py-4 font-bold"
+                  style={{ borderRadius: 18, background: PANEL, color: PINE, border: `1.5px solid ${LINE}` }}
+                >
+                  <ScanBarcode size={22} /> Scan a barcode
+                  <span className="text-sm font-semibold" style={{ color: MUTED }}>· exact label numbers</span>
+                </button>
+                {lookingUp && <LookupSpinner />}
 
                 <input
                   value={text}
@@ -3140,6 +3187,7 @@ export default function CuteFit() {
               </div>
             )}
           </div>
+          {scanning && <BarcodeScanner onCode={findProduct} onClose={() => setScanning(false)} />}
         </div>
       )}
     </div>
