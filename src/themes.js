@@ -1,0 +1,36 @@
+// Colour themes, shared by the app and the login screen.
+export const THEMES = {
+  light: {
+    "--btn-grad": "#3c0f54", "--btn-alt": "#a52bfa", "--pine": "#3c0f54", "--ink": "#1e0a2e", "--muted": "#6b5a80", "--line": "#e9dbf2", "--bg": "#f8f1fb",
+    "--card": "#ffffff", "--panel": "#f8f1fb", "--protein": "#a52bfa", "--cal": "#e0329a", "--over": "#d64545",
+    "--mint": "#f9ddf0", "--water": "#2a9dd8", "--steps": "#5b2a86", "--active": "#d99a00",
+    "--trough": "#ebddf3", "--trough2": "#d9c6ea", "--segbg": "#f0e4f6", "--btnbg": "#f3e8f9",
+    "--tint-p": "#f1e4ff", "--tint-c": "#ffe6f3", "--tint-w": "#ddf0fa", "--tint-s": "#eadcf7",
+    "--water-text": "#17678f", "--icon": "#a18eb7", "--on-pine": "#e6c8f5",
+    "--art-frame": "#bdaed0", "--art-pad": "#8574a3", "--art-plate": "#ddd0ea", "--art-head": "#8e3fb8",
+    "--card-shadow": "none", "--nav-shadow": "none", "--seg-shadow": "0 1px 3px rgba(60,15,84,0.18)",
+    "--hdr-bg": "#140a22", "--hdr-border": "#5b2a86", "--hdr-glow": "0 0 18px rgba(165,43,250,0.25)",
+  },
+  neon: {
+    "--btn-grad": "#9b3df0", "--btn-alt": "#b04dff", "--pine": "#9b3df0", "--ink": "#f6ecff", "--muted": "#b8a4d4", "--line": "#3b2358", "--bg": "#0d0618",
+    "--card": "#170c27", "--panel": "#21123a", "--protein": "#b04dff", "--cal": "#ff5cbd", "--over": "#ff6b81",
+    "--mint": "#3a1a56", "--water": "#4cc3ff", "--steps": "#d7b4ff", "--active": "#ffc233",
+    "--trough": "#33204f", "--trough2": "#4b3270", "--segbg": "#241440", "--btnbg": "#2d1a4a",
+    "--tint-p": "#2c1752", "--tint-c": "#3b1736", "--tint-w": "#123049", "--tint-s": "#2c1b4c",
+    "--water-text": "#8fd8ff", "--icon": "#8f7bb0", "--on-pine": "#f3e1ff",
+    "--art-frame": "#5b4580", "--art-pad": "#8e75b8", "--art-plate": "#33205a", "--art-head": "#ff8de0",
+    "--seg-shadow": "0 0 8px rgba(176,60,255,0.35)", "--card-shadow": "0 0 20px rgba(176,60,255,0.18)", "--nav-shadow": "0 -4px 24px rgba(176,60,255,0.22)",
+    "--hdr-bg": "#140a22", "--hdr-border": "#5b2a86", "--hdr-glow": "0 0 18px rgba(165,43,250,0.25)",
+  },
+  dark: {
+    "--btn-grad": "linear-gradient(135deg, #3f83f8 0%, #7b5cf6 55%, #c64fdc 100%)", "--btn-alt": "linear-gradient(135deg, #c64fdc 0%, #7b5cf6 45%, #3f83f8 100%)", "--pine": "#7c8cff", "--ink": "#f1f3f7", "--muted": "#9aa4b5", "--line": "#2b313c", "--bg": "#0e1014",
+    "--card": "#161a20", "--panel": "#1f242c", "--protein": "#a78bfa", "--cal": "#ffcf4a", "--over": "#ff5d6c",
+    "--mint": "#1f2a44", "--water": "#38bdf8", "--steps": "#4ade80", "--active": "#f472b6",
+    "--trough": "#2a303b", "--trough2": "#3a4252", "--segbg": "#1b2029", "--btnbg": "#262c37",
+    "--tint-p": "#241f45", "--tint-c": "#3a3115", "--tint-w": "#12304a", "--tint-s": "#14301f",
+    "--water-text": "#8fd8ff", "--icon": "#7d8799", "--on-pine": "#e6e9ff",
+    "--art-frame": "#4a5465", "--art-pad": "#7a869a", "--art-plate": "#2a313d", "--art-head": "#7fb0ff",
+    "--seg-shadow": "0 1px 3px rgba(0,0,0,0.5)", "--card-shadow": "0 6px 20px rgba(0,0,0,0.35)", "--nav-shadow": "0 -6px 20px rgba(0,0,0,0.35)",
+    "--hdr-bg": "#101318", "--hdr-border": "#2b313c", "--hdr-glow": "none",
+  },
+};

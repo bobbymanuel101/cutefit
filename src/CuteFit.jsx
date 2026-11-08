@@ -1,5 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import { ChevronLeft, ScanBarcode, PencilLine, Camera, Plus, Minus, Trash2, Dumbbell, Utensils, Sparkles, Check, Loader2, X, User, RotateCcw, Droplets, Cog, Timer, Play, Square, ExternalLink, ChevronRight, Activity as ActivityIcon } from "lucide-react";
+import { THEMES } from "./themes.js";
+import MoveWell from "./movewell/MoveWell.jsx";
+import { MW_NAME, MW_TAGLINE, MW_EXERCISES } from "./movewell/moveWellContent.js";
+import { loadUserData, saveUserData } from "./auth/cloudStore.js";
+import { clearStorageFor } from "./storage.js";
 import { BarcodeScanner, PortionPicker, LookupSpinner, lookupBarcode, findBarcodeInImage } from "./Barcode.jsx";
 
 /* ---------- theme ---------- */
@@ -33,41 +38,6 @@ const ONPINE = "var(--on-pine)";
 const BTNG = "var(--btn-grad)";
 const BTNP = "var(--btn-alt)";
 
-const THEMES = {
-  light: {
-    "--btn-grad": "#3c0f54", "--btn-alt": "#a52bfa", "--pine": "#3c0f54", "--ink": "#1e0a2e", "--muted": "#6b5a80", "--line": "#e9dbf2", "--bg": "#f8f1fb",
-    "--card": "#ffffff", "--panel": "#f8f1fb", "--protein": "#a52bfa", "--cal": "#e0329a", "--over": "#d64545",
-    "--mint": "#f9ddf0", "--water": "#2a9dd8", "--steps": "#5b2a86", "--active": "#d99a00",
-    "--trough": "#ebddf3", "--trough2": "#d9c6ea", "--segbg": "#f0e4f6", "--btnbg": "#f3e8f9",
-    "--tint-p": "#f1e4ff", "--tint-c": "#ffe6f3", "--tint-w": "#ddf0fa", "--tint-s": "#eadcf7",
-    "--water-text": "#17678f", "--icon": "#a18eb7", "--on-pine": "#e6c8f5",
-    "--art-frame": "#bdaed0", "--art-pad": "#8574a3", "--art-plate": "#ddd0ea", "--art-head": "#8e3fb8",
-    "--card-shadow": "none", "--nav-shadow": "none", "--seg-shadow": "0 1px 3px rgba(60,15,84,0.18)",
-    "--hdr-bg": "#140a22", "--hdr-border": "#5b2a86", "--hdr-glow": "0 0 18px rgba(165,43,250,0.25)",
-  },
-  neon: {
-    "--btn-grad": "#9b3df0", "--btn-alt": "#b04dff", "--pine": "#9b3df0", "--ink": "#f6ecff", "--muted": "#b8a4d4", "--line": "#3b2358", "--bg": "#0d0618",
-    "--card": "#170c27", "--panel": "#21123a", "--protein": "#b04dff", "--cal": "#ff5cbd", "--over": "#ff6b81",
-    "--mint": "#3a1a56", "--water": "#4cc3ff", "--steps": "#d7b4ff", "--active": "#ffc233",
-    "--trough": "#33204f", "--trough2": "#4b3270", "--segbg": "#241440", "--btnbg": "#2d1a4a",
-    "--tint-p": "#2c1752", "--tint-c": "#3b1736", "--tint-w": "#123049", "--tint-s": "#2c1b4c",
-    "--water-text": "#8fd8ff", "--icon": "#8f7bb0", "--on-pine": "#f3e1ff",
-    "--art-frame": "#5b4580", "--art-pad": "#8e75b8", "--art-plate": "#33205a", "--art-head": "#ff8de0",
-    "--seg-shadow": "0 0 8px rgba(176,60,255,0.35)", "--card-shadow": "0 0 20px rgba(176,60,255,0.18)", "--nav-shadow": "0 -4px 24px rgba(176,60,255,0.22)",
-    "--hdr-bg": "#140a22", "--hdr-border": "#5b2a86", "--hdr-glow": "0 0 18px rgba(165,43,250,0.25)",
-  },
-  dark: {
-    "--btn-grad": "linear-gradient(135deg, #3f83f8 0%, #7b5cf6 55%, #c64fdc 100%)", "--btn-alt": "linear-gradient(135deg, #c64fdc 0%, #7b5cf6 45%, #3f83f8 100%)", "--pine": "#7c8cff", "--ink": "#f1f3f7", "--muted": "#9aa4b5", "--line": "#2b313c", "--bg": "#0e1014",
-    "--card": "#161a20", "--panel": "#1f242c", "--protein": "#a78bfa", "--cal": "#ffcf4a", "--over": "#ff5d6c",
-    "--mint": "#1f2a44", "--water": "#38bdf8", "--steps": "#4ade80", "--active": "#f472b6",
-    "--trough": "#2a303b", "--trough2": "#3a4252", "--segbg": "#1b2029", "--btnbg": "#262c37",
-    "--tint-p": "#241f45", "--tint-c": "#3a3115", "--tint-w": "#12304a", "--tint-s": "#14301f",
-    "--water-text": "#8fd8ff", "--icon": "#7d8799", "--on-pine": "#e6e9ff",
-    "--art-frame": "#4a5465", "--art-pad": "#7a869a", "--art-plate": "#2a313d", "--art-head": "#7fb0ff",
-    "--seg-shadow": "0 1px 3px rgba(0,0,0,0.5)", "--card-shadow": "0 6px 20px rgba(0,0,0,0.35)", "--nav-shadow": "0 -6px 20px rgba(0,0,0,0.35)",
-    "--hdr-bg": "#101318", "--hdr-border": "#2b313c", "--hdr-glow": "none",
-  },
-};
 
 
 /* ---------- constants ---------- */
@@ -161,7 +131,23 @@ const DEFAULT_STORE = {
   steps: {},
   weights: {},
   look: "light",
+  moveWell: {},
 };
+
+// Move well opens for everyone once at least one exercise is approved by the physiotherapist.
+// Until then it shows "Coming soon". To preview it on your own phone, open the site once with
+// ?mwpreview=1 at the end of the address (and ?mwpreview=0 to turn the preview off again).
+const MW_READY = MW_EXERCISES.some((e) => e.approved);
+function mwPreviewOn() {
+  try {
+    const q = new URLSearchParams(window.location.search).get("mwpreview");
+    if (q === "1") localStorage.setItem("cutefit:mwpreview", "1");
+    if (q === "0") localStorage.removeItem("cutefit:mwpreview");
+    return localStorage.getItem("cutefit:mwpreview") === "1";
+  } catch {
+    return false;
+  }
+}
 
 /* ---------- helpers ---------- */
 const todayKey = () => new Date().toLocaleDateString("en-CA");
@@ -995,7 +981,7 @@ function MachineArt({ id, name, mode = "static", sync }) {
 }
 
 /* ---------- main app ---------- */
-export default function CuteFit() {
+export default function CuteFit({ user = null, onSignOut, onDeleteAccount } = {}) {
   const [store, setStore] = useState(DEFAULT_STORE);
   const [loaded, setLoaded] = useState(false);
   const [tab, setTab] = useState("food");
@@ -1047,6 +1033,22 @@ export default function CuteFit() {
   const planRef = useRef(null);
   const scrollRef = useRef(null);
   const [showProfile, setShowProfile] = useState(false);
+  const [showMoveWell, setShowMoveWell] = useState(false);
+  const [mwPreview] = useState(mwPreviewOn);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
+  const deleteAccount = async () => {
+    setDeleteError("");
+    setDeleting(true);
+    try {
+      await onDeleteAccount();
+      await clearStorageFor(user.id).catch(() => {});
+    } catch (e) {
+      setDeleteError(e.message || "Your account couldn't be deleted. Please try again.");
+      setDeleting(false);
+    }
+  };
   // Short screens (small phones, Safari with toolbars) get a tighter home layout
   const [short, setShort] = useState(() => window.innerHeight < 720);
   useEffect(() => {
@@ -1114,10 +1116,19 @@ export default function CuteFit() {
     (async () => {
       try {
         const res = await window.storage.get(KEY, false);
-        if (res && res.value) {
-          const saved = JSON.parse(res.value);
-          setStore({ ...DEFAULT_STORE, ...saved, profile: { ...DEFAULT_STORE.profile, ...saved.profile } });
+        let saved = res && res.value ? JSON.parse(res.value) : null;
+        // Logged in: use whichever copy is newer, this phone's or the online one
+        if (user) {
+          try {
+            const at = await window.storage.get(KEY + ":at", false);
+            const localAt = Number(at && at.value) || 0;
+            const cloud = await loadUserData(user.id);
+            if (cloud && cloud.data && (!saved || cloud.updatedAt > localAt)) saved = cloud.data;
+          } catch (e) {
+            console.error("Couldn't load online data, using this phone's copy", e);
+          }
         }
+        if (saved) setStore({ ...DEFAULT_STORE, ...saved, profile: { ...DEFAULT_STORE.profile, ...saved.profile } });
       } catch (e) {
         /* first visit */
       }
@@ -1130,10 +1141,17 @@ export default function CuteFit() {
     (async () => {
       try {
         await window.storage.set(KEY, JSON.stringify(store), false);
+        await window.storage.set(KEY + ":at", String(Date.now()), false);
       } catch (e) {
         console.error("Save failed", e);
       }
     })();
+    if (!user) return;
+    // Save online too, a moment after the last change (fails quietly when offline)
+    const t = setTimeout(() => {
+      saveUserData(user.id, store).catch((e) => console.error("Online save failed", e));
+    }, 1500);
+    return () => clearTimeout(t);
   }, [store, loaded]);
 
   const { profile } = store;
@@ -1363,6 +1381,12 @@ export default function CuteFit() {
   const look = store.look || "light";
   const dark = look === "dark" || look === "neon" || (look === "auto" && systemDark);
   const themeVars = look === "neon" ? THEMES.neon : dark ? THEMES.dark : THEMES.light;
+  // Remember the look for the login screen, which shows before any data is loaded
+  useEffect(() => {
+    try {
+      localStorage.setItem("cutefit:look", look);
+    } catch {}
+  }, [look]);
   // Match the page behind the app (status bar area, edges) to the current theme
   useEffect(() => {
     const bg = themeVars["--bg"];
@@ -2018,6 +2042,27 @@ export default function CuteFit() {
               <p className="text-xs mt-3" style={{ color: MUTED }}>
                 General guidance, not medical advice. Start lighter than you think, and ask gym staff if you're unsure about a machine.
               </p>
+            </section>
+
+            <section className="p-5 flex flex-col gap-3" style={card}>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h2 className="font-bold text-lg">{MW_NAME}</h2>
+                  {!MW_READY && (
+                    <span className="text-xs font-bold px-2 py-1" style={{ background: MINT, color: PINE, borderRadius: 10 }}>
+                      {mwPreview ? "Preview" : "Coming soon"}
+                    </span>
+                  )}
+                </div>
+                <p className="text-sm" style={{ color: MUTED }}>{MW_TAGLINE}</p>
+              </div>
+              {MW_READY || mwPreview ? (
+                <button onClick={() => setShowMoveWell(true)} className="py-3 font-bold text-white" style={{ borderRadius: 16, background: BTNG }}>
+                  Open {MW_NAME}
+                </button>
+              ) : (
+                <p className="text-sm" style={{ color: MUTED }}>We're preparing these exercises with a physiotherapist. They'll appear here once they're ready.</p>
+              )}
             </section>
 
             <section className="p-5 flex flex-col gap-4" style={card}>
@@ -3288,12 +3333,57 @@ export default function CuteFit() {
               <p className="text-sm" style={{ color: MUTED }}>Dark is a neutral charcoal look. Neon is the purple glow. Auto switches between Light and Dark with your phone's setting.</p>
             </section>
 
+              {user && (
+                <section className="p-5 flex flex-col gap-3" style={card}>
+                  <div>
+                    <h2 className="font-bold text-lg">Account</h2>
+                    <p className="text-sm" style={{ color: MUTED }}>
+                      {user.user_metadata?.full_name ? `${user.user_metadata.full_name} · ` : ""}
+                      {user.email}
+                    </p>
+                  </div>
+                  <button onClick={onSignOut} className="py-3 font-bold" style={{ borderRadius: 16, border: `1.5px solid ${LINE}`, color: INK }}>
+                    Log out
+                  </button>
+                  {!confirmDelete ? (
+                    <button onClick={() => setConfirmDelete(true)} className="py-2 text-sm font-semibold" style={{ color: OVER }}>
+                      Delete my account
+                    </button>
+                  ) : (
+                    <div className="p-4 flex flex-col gap-3" style={{ background: PANEL, borderRadius: 16 }}>
+                      <p className="text-sm font-semibold">
+                        This permanently deletes your account and everything saved with it: meals, workouts, weigh-ins and Move well answers. It can't be undone.
+                      </p>
+                      {deleteError && <p className="text-sm font-semibold" role="alert" style={{ color: OVER }}>{deleteError}</p>}
+                      <button
+                        onClick={deleteAccount}
+                        disabled={deleting}
+                        className="py-3 font-bold text-white flex items-center justify-center gap-2"
+                        style={{ borderRadius: 14, background: OVER, opacity: deleting ? 0.7 : 1 }}
+                      >
+                        {deleting && <Loader2 size={18} className="animate-spin" />}
+                        {deleting ? "Deleting..." : "Yes, delete everything"}
+                      </button>
+                      <button onClick={() => { setConfirmDelete(false); setDeleteError(""); }} disabled={deleting} className="py-2 font-semibold" style={{ color: INK }}>
+                        Cancel
+                      </button>
+                    </div>
+                  )}
+                </section>
+              )}
+
               <section className="p-5 flex flex-col gap-2" style={card}>
                 <h2 className="font-bold text-lg">About CuteFit</h2>
                 <p className="text-sm" style={{ color: MUTED }}>
-                  Your data stays on this phone. Meal estimates and ideas use AI and are approximate; barcode numbers come from the product label via Open Food Facts.
+                  {user ? "Your data is saved on this phone and in your account, so it follows you to another phone." : "Your data stays on this phone."} Meal estimates and ideas use AI and are approximate; barcode numbers come from the product label via Open Food Facts.
                 </p>
                 <p className="text-xs" style={{ color: MUTED }}>General guidance only, not medical advice.</p>
+                {user && (
+                  <p className="text-xs" style={{ color: MUTED }}>
+                    <a href="/privacy/" target="_blank" rel="noopener noreferrer" className="underline">Privacy Policy</a> ·{" "}
+                    <a href="/terms/" target="_blank" rel="noopener noreferrer" className="underline">Terms</a>
+                  </p>
+                )}
               </section>
             </div>
           </div>
@@ -3447,6 +3537,20 @@ export default function CuteFit() {
             )}
           </div>
           {scanning && <BarcodeScanner onCode={findProduct} onClose={() => setScanning(false)} />}
+        </div>
+      )}
+
+      {showMoveWell && (
+        <div
+          className="fixed inset-0"
+          style={{ background: BG, zIndex: 58, overflowY: "auto", overscrollBehavior: "contain", paddingTop: "env(safe-area-inset-top)", paddingBottom: "env(safe-area-inset-bottom)" }}
+        >
+          <MoveWell
+            data={store.moveWell}
+            onData={(next) => setStore((st) => ({ ...st, moveWell: next }))}
+            onClose={() => setShowMoveWell(false)}
+            showDrafts={!MW_READY && mwPreview}
+          />
         </div>
       )}
     </div>
