@@ -138,6 +138,9 @@ const DEFAULT_STORE = {
 // Until then it shows "Coming soon". To preview it on your own phone, open the site once with
 // ?mwpreview=1 at the end of the address (and ?mwpreview=0 to turn the preview off again).
 const MW_READY = MW_EXERCISES.some((e) => e.approved);
+// Trial stage: open Move well to everyone with the example exercises, clearly labelled as
+// not yet checked. Set to false to go back to "Coming soon" until exercises are approved.
+const MW_TRIAL = true;
 function mwPreviewOn() {
   try {
     const q = new URLSearchParams(window.location.search).get("mwpreview");
@@ -1034,7 +1037,7 @@ export default function CuteFit({ user = null, onSignOut, onDeleteAccount } = {}
   const scrollRef = useRef(null);
   const [showProfile, setShowProfile] = useState(false);
   const [showMoveWell, setShowMoveWell] = useState(false);
-  const [mwPreview] = useState(mwPreviewOn);
+  const [mwPreview] = useState(() => mwPreviewOn() || MW_TRIAL);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState("");
@@ -2050,7 +2053,7 @@ export default function CuteFit({ user = null, onSignOut, onDeleteAccount } = {}
                   <h2 className="font-bold text-lg">{MW_NAME}</h2>
                   {!MW_READY && (
                     <span className="text-xs font-bold px-2 py-1" style={{ background: MINT, color: PINE, borderRadius: 10 }}>
-                      {mwPreview ? "Preview" : "Coming soon"}
+                      {MW_TRIAL ? "Trial" : mwPreview ? "Preview" : "Coming soon"}
                     </span>
                   )}
                 </div>

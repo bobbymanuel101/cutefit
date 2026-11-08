@@ -201,7 +201,7 @@ export default function MoveWell({ data = {}, onData, onClose, showDrafts = fals
 
   const draftBanner = showDrafts && (
     <p style={{ margin: "0 0 14px", padding: "10px 12px", borderRadius: 12, background: MWC.tintC, color: MWC.ink, fontSize: 13, fontWeight: 600 }}>
-      Preview mode: exercise text is placeholder content that has not been reviewed. Never show this to real users.
+      Trial version: these are general example exercises. A physiotherapist hasn't checked them yet, so go gently and stop if anything hurts.
     </p>
   );
   const footer = (
@@ -438,7 +438,7 @@ export default function MoveWell({ data = {}, onData, onClose, showDrafts = fals
         {list.map((e) => (
           <button key={e.id} onClick={() => { setExId(e.id); setFinished(null); go("exercise"); }} style={{ ...mwCard, textAlign: "left", cursor: "pointer", color: MWC.ink }}>
             <span style={{ fontWeight: 700, fontSize: 17, display: "block" }}>{e.title}</span>
-            {!e.approved && <span style={{ fontSize: 12, fontWeight: 700, color: MWC.over }}>DRAFT, not reviewed</span>}
+            {!e.approved && <span style={{ fontSize: 12, fontWeight: 700, color: MWC.over }}>Trial: not yet checked by a physio</span>}
           </button>
         ))}
       </div>
@@ -457,19 +457,19 @@ export default function MoveWell({ data = {}, onData, onClose, showDrafts = fals
     return shell(
       e.title,
       <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-        {!e.approved && <p style={{ margin: 0, fontWeight: 700, color: MWC.over, fontSize: 13 }}>DRAFT, not reviewed</p>}
+        {!e.approved && <p style={{ margin: 0, fontWeight: 700, color: MWC.over, fontSize: 13 }}>Trial: not yet checked by a physio</p>}
         <div style={mwCard}>
           <p style={{ margin: 0 }}>{e.summary || (showDrafts ? MW_PLACEHOLDER : "")}</p>
         </div>
         <div style={mwCard}>
           <h2 style={{ margin: "0 0 8px", fontSize: 17 }}>How to do it</h2>
           {e.steps.length ? (
-            <ol style={{ margin: 0, paddingLeft: 20 }}>{e.steps.map((s, i) => <li key={i} style={{ marginBottom: 6 }}>{s}</li>)}</ol>
+            <ol style={{ margin: 0, paddingLeft: 20, listStyle: "decimal" }}>{e.steps.map((s, i) => <li key={i} style={{ marginBottom: 6 }}>{s}</li>)}</ol>
           ) : (
             <p style={{ margin: 0, color: MWC.muted }}>{MW_PLACEHOLDER}</p>
           )}
           {e.cues.length > 0 && (
-            <ul style={{ margin: "12px 0 0", paddingLeft: 20, color: MWC.muted }}>{e.cues.map((c, i) => <li key={i}>{c}</li>)}</ul>
+            <ul style={{ margin: "12px 0 0", paddingLeft: 20, color: MWC.muted, listStyle: "disc" }}>{e.cues.map((c, i) => <li key={i}>{c}</li>)}</ul>
           )}
         </div>
         {timerPlan && (
